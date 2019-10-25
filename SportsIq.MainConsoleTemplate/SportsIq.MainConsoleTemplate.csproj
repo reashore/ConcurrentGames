@@ -1,0 +1,87 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="15.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <Import Project="$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props" Condition="Exists('$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props')" />
+  <PropertyGroup>
+    <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
+    <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
+    <ProjectGuid>{6A74CF42-BFE5-4055-BFED-F2C16B830514}</ProjectGuid>
+    <OutputType>Library</OutputType>
+    <AppDesignerFolder>Properties</AppDesignerFolder>
+    <RootNamespace>SportsIq.MainConsoleTemplate</RootNamespace>
+    <AssemblyName>SportsIq.MainConsoleTemplate</AssemblyName>
+    <TargetFrameworkVersion>v4.6.2</TargetFrameworkVersion>
+    <FileAlignment>512</FileAlignment>
+    <Deterministic>true</Deterministic>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
+    <DebugSymbols>true</DebugSymbols>
+    <DebugType>full</DebugType>
+    <Optimize>false</Optimize>
+    <OutputPath>bin\Debug\</OutputPath>
+    <DefineConstants>DEBUG;TRACE</DefineConstants>
+    <ErrorReport>prompt</ErrorReport>
+    <WarningLevel>4</WarningLevel>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
+    <DebugType>pdbonly</DebugType>
+    <Optimize>true</Optimize>
+    <OutputPath>bin\Release\</OutputPath>
+    <DefineConstants>TRACE</DefineConstants>
+    <ErrorReport>prompt</ErrorReport>
+    <WarningLevel>4</WarningLevel>
+  </PropertyGroup>
+  <ItemGroup>
+    <Reference Include="log4net, Version=2.0.8.0, Culture=neutral, PublicKeyToken=669e0ddf0bb1aa2a, processorArchitecture=MSIL">
+      <HintPath>..\packages\log4net.2.0.8\lib\net45-full\log4net.dll</HintPath>
+    </Reference>
+    <Reference Include="SimpleInjector, Version=4.7.1.0, Culture=neutral, PublicKeyToken=984cb50dea722e99, processorArchitecture=MSIL">
+      <HintPath>..\packages\SimpleInjector.4.7.1\lib\net45\SimpleInjector.dll</HintPath>
+    </Reference>
+    <Reference Include="System" />
+    <Reference Include="System.Configuration" />
+    <Reference Include="System.Core" />
+    <Reference Include="System.Xml.Linq" />
+    <Reference Include="Microsoft.CSharp" />
+    <Reference Include="System.Data" />
+    <Reference Include="System.Xml" />
+  </ItemGroup>
+  <ItemGroup>
+    <Compile Include="MainConsole.cs" />
+    <Compile Include="Mlb\MlbMainConsole.cs" />
+    <Compile Include="Nba\WnbaMainConsole.cs" />
+    <Compile Include="Ncaabb\NcaabbMainConsole.cs" />
+    <Compile Include="Ncaafb\NcaafbMainConsole.cs" />
+    <Compile Include="Nfl\NflMainConsole.cs" />
+    <Compile Include="Nhl\NhlMainConsole.cs" />
+    <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="Wnba\WnbaMainConsole.cs" />
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\SportsIq.Games\SportsIq.Games.csproj">
+      <Project>{11A10D28-8AE6-4C22-ACB2-227F099EAD57}</Project>
+      <Name>SportsIq.Games</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\SportsIq.Models\SportsIq.Models.csproj">
+      <Project>{0866EDA0-9A24-4D8A-B902-00F97A4919B0}</Project>
+      <Name>SportsIq.Models</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\SportsIq.PubSub\SportsIq.PubSub.csproj">
+      <Project>{C8382B08-C7AF-48DB-9AFC-4E5D534351EA}</Project>
+      <Name>SportsIq.PubSub</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\SportsIq.SportsRadar\SportsIq.SportsRadar.csproj">
+      <Project>{5BA29D16-4385-48C8-A270-6AD593607496}</Project>
+      <Name>SportsIq.SportsRadar</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\SportsIq.SqlDataAccess\SportsIq.SqlDataAccess.csproj">
+      <Project>{403D8AF2-E670-40E0-9B21-6AB8C97ECA7B}</Project>
+      <Name>SportsIq.SqlDataAccess</Name>
+    </ProjectReference>
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="app.config" />
+    <None Include="packages.config" />
+  </ItemGroup>
+  <ItemGroup />
+  <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
+</Project>

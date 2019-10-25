@@ -1,0 +1,10 @@
+﻿
+Rules for JSON conversion to classes using QuickType:
+
+1) Choose Complete conversion
+2) Choose enumerables as List<T>
+3) Unselect "fail if required properties are missing"
+4) Remove partial keyword if not explicitly used
+5) Change long types to int
+6) Change enum types to strings (unless all enum values are known)
+7) Fix ReSharper defects in code

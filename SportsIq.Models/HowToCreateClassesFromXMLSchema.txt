@@ -1,0 +1,44 @@
+﻿
+How to create a C# class from a SportRadar XSD file using Command Prompt
+
+1) Download the XML schema file from SportRadar and save to a local temp directory
+2) Check the schema header for schema include files
+3) Download all schema include files using the same base URL as the schema to the temp directory
+4) Open a CommandPrompt and switch to the temp directory
+5) Run the command: xsd schemaFileName.xsd /classes /fields
+6) This will generate a file schemaFileName.cs in the temp directory
+7) Add using statements to the top of the .cs file in order to shorten fully-qualified variable names
+8) The .cs file file will have a large number of ReSharper warnings because it does not follow C# naming conventions.
+9) Create a test to deserialize the file
+10) Proceed class by class to fix the invalid naming conventions
+11) Run the test after each batch of name fixes to enure that they worked
+
+
+
+
+How to create a C# class from a SportRadar XSD file using Liquid XML
+
+1) Set .xsds properties
+	1) add source location comments = false
+	2) auto-regenerate = false
+	3) simplified model (the comformant models are harder to work with)
+2) Rename file MlbGameInfo.xsds
+3) ReSharper cleanup
+	1) remove redundant qualifiers in file
+	2) remove partial keyword in file
+	3) remove redundant comma in file
+	4) remove redundant parentheses in file
+	5) use type keyword in file
+	6) remove unused using statements
+	7) fix naming in file (optional)
+4) Fix BigInteger and BigDecimal type
+	1) Rename BigInteger to int 
+	2) change XsdType.XsdInteger to XsdType.XsdInt	
+5) Fix BigDecimal type
+	1) Rename BigDecimal to double 
+	2) change XsdType.XsdDecimal to XsdType.XsdDouble
+6) Rename element GameElm to MlbGameInfo
+
+
+
+

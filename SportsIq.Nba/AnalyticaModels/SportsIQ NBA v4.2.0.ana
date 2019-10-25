@@ -1,0 +1,3651 @@
+{ From user jayal, Model SportsIQ_NBA at 9-Mar-2019 1:27:15 PM, encoding="UTF-8" }
+SoftwareVersion 5.1.6
+
+
+{ System Variables with non-default values: }
+SampleSize := 1000
+TypeChecking := 1
+Checking := 1
+SaveOptions := 2
+SaveValues := 0
+
+NodeInfo FormNode: 1,0,0,1,0,0,0,,0,0,,0,0
+
+
+
+Model SportsIQ_NBA
+Title: SportsIQ NBA
+Author: jayal
+Date: Sat, Aug 18, 2018 7:05 PM
+SaveAuthor: jayal
+SaveDate: Sat, Mar 9, 2019 1:27 PM
+DiagState: 2,1,0,1488,802,17
+FontStyle: Arial,15
+FileInfo: 0,Model SportsIQ_NBA,2,2,0,0,C:\Users\jayal\OneDrive\NewCo\SportsIQ NBA v4.2.0.ana
+
+Module Framework_Objects
+Title: Framework Objects
+Author: jayal
+Date: Sat, Aug 18, 2018 7:51 PM
+NodeLocation: 272,280,1
+NodeSize: 56,24
+DiagState: 2,409,452,1695,664,17
+
+Index iGP
+Title: Index - Game Period
+Description: CG = Complete Game~
+1H = First Half~
+2H = Second Half~
+1Q = First Quarter~
+2Q = Second Quarter~
+3Q = Third Quarter~
+4Q = Fourth Quarter
+Definition: ['CG','H1','H2','Q1','Q2','Q3','Q4']
+NodeLocation: 96,72,1
+NodeSize: 48,32
+Att_PrevIndexValue: ['CG','H1','H2','Q1','Q2','Q3','Q4']
+
+Index iGT
+Title: Index - Game Time
+Units: Minutes
+Definition: "M"&sequence(0,11,1)
+NodeLocation: 240,72,1
+NodeSize: 48,32
+Att_PrevIndexValue: ['M0','M1','M2','M3','M4','M5','M6','M7','M8','M9','M10','M11']
+
+Index iBL
+Title: Index - Betting Lines
+Description: ML = Moneyline~
+SP = Spread~
+TO = Total
+Definition: ['ML','SP','TO']
+NodeLocation: 392,72,1
+NodeSize: 48,32
+Att_PrevIndexValue: ['ML','SP','TO']
+
+Index iSM
+Att_PrevIndexValue: ['P']
+Title: Index - Stat Metrics
+Description: Stats to Consider~
+P = Points
+Definition: ['P']
+NodeLocation: 552,64,1
+NodeSize: 48,32
+
+Index iTVH
+Title: Index -  Team Side
+Description: V = Visitor~
+H = Home
+Definition: ['V','H']
+NodeLocation: 696,64,1
+NodeSize: 48,24
+Att_PrevIndexValue: ['V','H']
+
+Index iSS
+Title: Index - Stats Scope
+Description: H = As Home~
+V = As Visitor~
+A = Any
+Definition: ['H','V','A']
+NodeLocation: 968,64,1
+NodeSize: 48,40
+
+Index iQT
+Title: Index - Quarters
+Description: Quarter 1 through 4
+Definition: ['Q1','Q2','Q3','Q4']
+NodeLocation: 232,160,1
+NodeSize: 48,24
+Att_PrevIndexValue: ['Q1','Q2','Q3','Q4']
+
+Index iTOS
+Title: Index - Total Side
+Description: OV = Over~
+UN = Under
+Definition: ['OV','UN']
+NodeLocation: 696,144,1
+NodeSize: 48,24
+
+Index iGL2
+Title: Index - Generic 2 Way Line
+Description: T = Target (Always Side 1)~
+S1 and S2 = Side 1 or 2~
+For Team Sides~
+S1 = Visitor~
+S2 = Home~
+For Totals~
+S1 = Over~
+S2 = Under
+Definition: ['T','S1','S2']
+NodeLocation: 528,144,1
+NodeSize: 48,40
+Att_PrevIndexValue: ['T','S1','S2']
+
+Index iSAS
+Title: Index - Stats Aspect Scope
+Description: OS = Offensive Stats~
+DS = Defensive Stats
+Definition: ['OS','DS']
+NodeLocation: 848,144,1
+NodeSize: 48,40
+Att_PrevIndexValue: ['OS','DS']
+
+Index iSTT
+Title: Index - Stat Type
+Description: M - Metrics~
+S - Standard Deviation
+Definition: ['M','S']
+NodeLocation: 376,160,1
+NodeSize: 48,24
+
+Index iPLY
+Title: Index - Player Index
+Definition: "P"&sequence(1,if nppt<1 then 1 else if nppt>15 then 15 else floor(nppt,0),1)
+NodeLocation: 376,240,1
+NodeSize: 56,40
+WindState: 2,1255,483,720,350
+
+Constant hvf
+Title: hvf
+Definition: .8333
+NodeLocation: 1208,168,1
+NodeSize: 48,24
+
+Function OTP(t,s1,s2)
+Title: Odds to 100% Probability
+Definition: var ToO:=if s1=0 and s2=0 then "U" else if s1<0 or s2<0 then "A"  else if s1<1 and s2<1 then "P" else "D";~
+var sd1:=if too="U" then 0 else if too="P" then s1 else if too="D" then 1/s1 else if s1>0 then 1/(s1/100 + 1) else 1/(-100/s1 +1);~
+var sd2:=if too="U" then 0 else if too="P" then s2 else if too="D" then 1/s2 else if s2>0 then 1/(s2/100 + 1) else 1/(-100/s2 +1);~
+var OVR:=sd1+sd2;~
+if ovr=0 then array(iGL2,[0,0,0]) else array(iGL2,[t,sd1/ovr,sd2/ovr])
+NodeLocation: 1144,80,1
+NodeSize: 56,32
+DisplayOutputs: Variable Va2
+
+Function BPC(t,p)
+Title: Base % Computation
+Definition: ~
+var bpd:=abs(p-0.5);~
+bpd:=p/0.5;~
+((1+bpd)^(1/t)) -1
+NodeLocation: 1352,80,1
+NodeSize: 64,24
+WindState: 2,626,154,720,350
+
+Index iToL
+Title: Index - Team or League
+Definition: ['T','L']
+NodeLocation: 712,240,1
+NodeSize: 48,32
+
+Constant PerM
+Definition: Table(iGP)(0.0218,0.0428,0.0428,0.0621,0.0621,0.0621,0.0621)
+NodeLocation: 1344,160,1
+NodeSize: 48,24
+NodeInfo: 1,1,1,1,1,1,0,0,0,0,,0,1,0
+WindState: 2,444,203,720,350
+
+Index iTGT
+Title: Index - Target
+Definition: ['S','T']
+NodeLocation: 104,168,1
+NodeSize: 48,24
+
+Index iALT
+Title: Index - Alternates
+Definition: var n:=if floor(NoA)<1 then 1 else if NoA>20.5 then 20.5 else floor(NoA);~
+sequence(-n,n,0.5)
+NodeLocation: 528,336,1
+NodeSize: 48,24
+WindState: 2,1566,30,720,350
+
+Index iGL3
+Title: Index - Generic 3 Way Line
+Description: T = Target (Always Side 1)~
+S1 and S2 = Side 1 or 2~
+For Team Sides~
+S1 = Visitor~
+S2 = Home~
+For Totals~
+S1 = Over~
+S2 = Under~
+~
+S3 = Draw or Exact Match
+Definition: ['T','S1','S2','S3']
+NodeLocation: 520,240,1
+NodeSize: 48,32
+
+Index iWM
+Title: Index - Winning Margin
+Definition: [-19,-18,-15,-12,-9,-6,-3,0,3,6,9,12,15,18,19]
+IndexVals: ['item 1']
+NodeLocation: 928,240,1
+NodeSize: 48,32
+
+Index iIALT
+Title: Index - Inter Alts
+Definition: sequence(-200.5,200.5,0.5)
+NodeLocation: 688,336,1
+NodeSize: 48,24
+
+Index iGS
+Title: Index - Game State
+Description: S = Seconds Left in the Game~
+F = Foul  State 0 to n Fouls to shoot~
+P = Possession (H)ome (V)isitor (N)eutral
+Definition: ['S','F','P']
+NodeLocation: 152,288,1
+NodeSize: 48,32
+Att_PrevIndexValue: ['S','F','P']
+
+Index iSHS
+Title: Index - Shooting Stats
+Description: F3 - 3 Pt FG Average~
+F2 - 2 Pt FG Average~
+FT - Free Throw Average
+Definition: ['F3','F2','FT','FGE']
+NodeLocation: 296,344,1
+NodeSize: 48,32
+Att_PrevIndexValue: ['F3','F2','FT','FGE']
+
+Index iRNG
+Title: Index - Ranges
+Definition: [3,6,9,12]
+NodeLocation: 944,352,1
+NodeSize: 48,24
+
+Index In1
+NodeLocation: 936,424,1
+NodeSize: 48,24
+
+Index iSW
+Title: Index - Stats Weight
+Definition: [0,MSR,1]
+NodeLocation: 608,448,1
+NodeSize: 48,32
+
+Constant OvNP
+Title: OvNP
+NodeLocation: 1216,240,1
+NodeSize: 48,24
+
+Index iAR
+Title: Index - Accuracy or Ratio
+Definition: ['A','R']
+NodeLocation: 312,440,1
+NodeSize: 48,32
+Att_PrevIndexValue: ['A','R']
+
+Index iRTX
+Title: Index - Race to X
+Definition: sequence(5,125,5)
+NodeLocation: 800,392,1
+NodeSize: 48,24
+
+Index iTRXP
+Title: Index - To Reach X
+Definition: ['T','VO','HO','BT','NT']
+NodeLocation: 528,536,1
+NodeSize: 48,24
+
+Index iTRT
+Att_PrevIndexValue: ['T1','T2','T3','T4','T5']
+Title: Index - To Reach TGT
+Definition: ['T1','T2','T3','T4','T5']
+NodeLocation: 400,472,1
+NodeSize: 48,32
+
+Constant CTRX
+Title: CTRX
+Definition: Table(iGP,iTRT)(~
+90,95,100,110,120,~
+45,50,55,60,65,~
+45,50,55,60,65,~
+20,25,30,35,40,~
+20,25,30,35,40,~
+20,25,30,35,40,~
+20,25,30,35,40)
+NodeLocation: 1392,240,1
+NodeSize: 48,24
+
+Index iCM4
+Title: Index - Combined Markets 4 Ways
+Definition: ['TL','SP','VO','VU','HO','HU']
+NodeLocation: 168,384,1
+NodeSize: 48,40
+
+Index iCM6
+Title: Index - Combined Market 6 Ways
+Definition: ['TL','VO','VU','HO','HU','VD','HD']
+NodeLocation: 1384,424,1
+NodeSize: 48,40
+
+Index iCMTA
+Title: Index - Combined Market Total Alts
+Definition: [-5,0,5]
+NodeLocation: 688,80,1
+NodeSize: 56,40
+
+Index iCMS
+Title: Index - Combined Market Spread Alts
+Definition: [-3,0,3]
+NodeLocation: 1096,328,1
+NodeSize: 56,40
+
+Index iOT
+Title: Index - Odds or Target
+Definition: ['O','T']
+NodeLocation: 1128,488,1
+NodeSize: 48,32
+
+Index iAdjT
+Title: Index - Total Adjustment
+Definition: sequence(-5,5,0.5)
+NodeLocation: 760,528,1
+NodeSize: 56,32
+WindState: 2,102,82,476,224
+
+Index iAdjS
+Title: Index - Spread Adjustment
+Definition: sequence(-5,5,0.5)
+NodeLocation: 888,528,1
+NodeSize: 56,32
+WindState: 2,102,82,476,224
+
+Close Framework_Objects
+
+Module Interface_Objects
+Title: Interface Objects
+Author: jayal
+Date: Sat, Aug 18, 2018 7:51 PM
+NodeLocation: 272,352,1
+NodeSize: 48,24
+DiagState: 2,638,120,1695,599,17
+
+Decision InMLF
+Title: Input - Market Line Feed
+Definition: Table(iGP,iBL,iGL2)(~
+0,1.185,4.42,~
+-8.5,1.909,2,~
+226,1.934,1.97,~
+0,1.413,3.1,~
+-5,1.961,1.925,~
+109.5,1.917,1.97,~
+0,0,0,~
+0,0,0,~
+0,0,0,~
+0,1.485,2.81,~
+-2.5,1.854,2.04,~
+56,1.943,1.943,~
+0,0,0,~
+0,0,0,~
+0,0,0,~
+0,0,0,~
+0,0,0,~
+0,0,0,~
+0,0,0,~
+0,0,0,~
+0,0,0)
+NodeLocation: 96,72,1
+NodeSize: 48,32
+WindState: 2,759,6,720,350
+DefnState: 2,1859,59,416,303,0,DFNM
+ValueState: 2,104,106,416,303,,MIDM
+Aliases: FormNode Fo1534646507
+ReformDef: [iBL,iGL2]
+ReformVal: [iGL2,iBL]
+Att_ResultSliceState: [iGP,2,iBL,1,iGL2,1]
+Att_EditSliceState: [iGP,2,iGL2,1,iBL,1]
+
+Decision InTSF
+Title: Input - Team Stats Feed
+Definition: Table(iGT,iTVH,iQT,iSAS)(~
+2.414787121779757,0.951894010549673,~
+2.4342928333906073,0.9527509711477724,~
+2.783356358351865,1.0238703382637921,~
+2.7413917864581934,0.9697199490791915,~
+2.333402795697169,0.9872646528030878,~
+2.7852038332267126,0.9256505108574139,~
+2.467458367554664,1.0279782571349947,~
+2.971375407664583,0.9889757273178228,~
+2.2902422272467033,0.951894010549673,~
+1.895732472021004,0.9527509711477724,~
+2.5264311560424617,1.0238703382637921,~
+2.383183259694323,0.9697199490791915,~
+2.244184453508748,0.9872646528030878,~
+2.009118390114061,0.9256505108574139,~
+2.3379707564293466,1.0279782571349947,~
+2.4244058052586652,0.9889757273178228,~
+2.0203949557584218,0.951894010549673,~
+2.046529373204493,0.9527509711477724,~
+2.2766427649083205,1.0238703382637921,~
+2.361252125402657,0.9697199490791915,~
+1.9765294269434843,0.9872646528030878,~
+2.291990654426149,0.9256505108574139,~
+2.1509330959149984,1.0279782571349947,~
+1.973525457329462,0.9889757273178228,~
+2.3594338353206217,0.951894010549673,~
+2.2404111032975504,0.9527509711477724,~
+2.5050207225166785,1.0238703382637921,~
+2.0688370015137836,0.9697199490791915,~
+2.052021870333687,0.9872646528030878,~
+2.255724979514343,0.9256505108574139,~
+2.1149643150468544,1.0279782571349947,~
+2.1435295229421123,0.9889757273178228,~
+2.096505724639732,0.951894010549673,~
+2.1398798358418913,0.9527509711477724,~
+2.226685086681492,1.0238703382637921,~
+2.2808379663332174,0.9697199490791915,~
+2.0863366173292333,0.9872646528030878,~
+2.0163715250964223,0.9256505108574139,~
+2.1940956329567705,1.0279782571349947,~
+2.2544017396460143,0.9889757273178228,~
+2.0134757949510296,0.951894010549673,~
+2.269134322570596,0.9527509711477724,~
+2.2623691425577976,1.0238703382637921,~
+2.675598383583197,0.9697199490791915,~
+1.9833923763425938,0.9872646528030878,~
+2.429800219091012,0.9256505108574139,~
+2.1437393397413698,1.0279782571349947,~
+2.150921004055706,0.9889757273178228,~
+2.2002931367506093,0.951894010549673,~
+1.989082934658402,0.9527509711477724,~
+2.2124114643309696,1.0238703382637921,~
+1.8129737681110187,0.9697199490791915,~
+2.1755549595176547,0.9872646528030878,~
+1.8858150954139203,0.9256505108574139,~
+1.8847641174907344,1.0279782571349947,~
+1.914393608420714,0.9889757273178228,~
+2.179535654328434,0.951894010549673,~
+1.8885516672027427,0.9527509711477724,~
+2.255232331382537,1.0238703382637921,~
+2.441666284472098,0.9697199490791915,~
+2.353991643894497,0.9872646528030878,~
+2.1179154148494796,0.9256505108574139,~
+2.3379707564293466,1.0279782571349947,~
+2.2544017396460143,0.9889757273178228,~
+2.006556634143638,0.951894010549673,~
+2.254772712934073,0.9527509711477724,~
+1.9697598843720892,1.0238703382637921,~
+2.156561538680446,0.9697199490791915,~
+2.3059509981007316,0.9872646528030878,~
+2.2122061696201754,0.9256505108574139,~
+2.287614463213945,1.0279782571349947,~
+2.1065721173741445,0.9889757273178228,~
+2.2141314583653933,0.951894010549673,~
+1.8095628142018676,0.9527509711477724,~
+2.3979685548877603,1.0238703382637921,~
+2.2369756977498856,0.9697199490791915,~
+2.0245700727372498,0.9872646528030878,~
+2.2267124395848983,0.9256505108574139,~
+2.158126852088627,1.0279782571349947,~
+2.0622232306925836,0.9889757273178228,~
+1.888930900417976,0.951894010549673,~
+2.1039758117505842,0.9527509711477724,~
+2.105359296702052,1.0238703382637921,~
+2.2369756977498856,0.9697199490791915,~
+2.189280858315873,0.9872646528030878,~
+2.1904467646730916,0.9256505108574139,~
+2.1221580712204835,1.0279782571349947,~
+2.0696147118061776,0.9889757273178228,~
+1.5429728600483834,0.951894010549673,~
+1.723393156382731,0.9527509711477724,~
+1.5201407803306337,1.0238703382637921,~
+2.0176643548332307,0.9697199490791915,~
+1.5441636147995972,0.9872646528030878,~
+1.4941458063664137,0.9256505108574139,~
+1.7552765063654168,1.0279782571349947,~
+1.6483002883313482,0.9889757273178228)
+NodeLocation: 216,64,1
+NodeSize: 48,32
+Aliases: FormNode Fo1534646508
+ReformDef: [iSS,iGP]
+ReformVal: [iGP,iSTT]
+Att_ResultSliceState: [iSM,1,iTVH,1,iSAS,1,iSLS,1,iSTT,1,iGP,1]
+Att_EditSliceState: [iTVH,1,iSAS,1,iQT,1,iGT,1]
+
+Decision InSC
+Title: Input - Scoring Curve
+Definition: Table(iGT,iTVH,iQT)(~
+0.0957213384530993,0.09817549956559513,0.10292953285827396,0.09999999999999998,~
+0.09234111895708853,0.10747271200671704,0.09506651884700665,0.11439954467842915,~
+0.09078442128359847,0.07645525629887054,0.0934283452098179,0.08693333333333333,~
+0.08881042911461162,0.07752588860901204,0.09007760532150776,0.09334092202618101,~
+0.0800877674163467,0.08253692441355343,0.08419107944048562,0.08613333333333331,~
+0.07821835958718087,0.08844108592219423,0.08287139689578712,0.07598178713716564,~
+0.09352715304443225,0.09035621198957429,0.09263657957244656,0.07546666666666665,~
+0.08120586637696904,0.08704170165127344,0.08148558758314854,0.08252703471826979,~
+0.08310477235326386,0.0863017665797857,0.08234362628661916,0.0832,~
+0.08256382400869092,0.07780576546319619,0.08453436807095341,0.08679567444507684,~
+0.07981349424026331,0.0915146249637996,0.08366323568223806,0.09759999999999999,~
+0.07848995111352526,0.09375874615169325,0.08259423503325941,0.08281161070005692,~
+0.08721886999451454,0.08022009846510281,0.08181578252837161,0.06613333333333332,~
+0.08609451385116784,0.07276798208788134,0.07261640798226163,0.07370517928286853,~
+0.0863960504662644,0.07616565305531421,0.08339931380311429,0.08906666666666666,~
+0.09315589353612168,0.08172404142177442,0.09007760532150776,0.08679567444507684,~
+0.07953922106417993,0.09093541847668694,0.07284243863816312,0.07866666666666666,~
+0.09125475285171102,0.08536244052616848,0.08813747228381373,0.0811041548093341,~
+0.0877674163466813,0.07298001737619461,0.08867775138558986,0.08159999999999998,~
+0.08011950027159152,0.08592219423453681,0.08314855875831484,0.07939669891861127,~
+0.07487657707076248,0.08485375036200406,0.07785695434151492,0.08159999999999998,~
+0.08663769690385659,0.084522809963616,0.08176274944567627,0.07968127490039842,~
+0.06116291826659353,0.06950477845351867,0.056215360253365,0.0736,~
+0.06110809342748506,0.05765463196193675,0.06762749445676274,0.06346044393853159)
+NodeLocation: 336,64,1
+NodeSize: 56,56
+WindState: 2,102,75,476,224
+ValueState: 2,88,90,972,475,,MIDM
+Aliases: FormNode Fo1534646509
+ReformDef: [iGT,iSS]
+Att__TotalsIndex: [iGT]
+Att_ResultSliceState: [iSM,1,iTVH,2,iSS,1,iSAS,1,iSTT,1,iToL,1,iQT,1,iGT,1]
+Att_EditSliceState: [iTVH,2,iQT,1,iGT,2]
+
+Decision MSR
+Title: Market/Stats Ratio
+Units: 0 to 1
+Description: 0 = 100% Market~
+1 = 100% Stats~
+decimals in between determine the ratio
+Definition: 0.5
+NodeLocation: 248,168,1
+NodeSize: 56,24
+WindState: 2,158,634,720,350
+Aliases: FormNode Fo1537918889
+
+Variable Va1
+Definition: bpc(6,.3676)
+NodeLocation: 1192,456,1
+NodeSize: 48,24
+WindState: 2,102,82,720,350
+ValueState: 2,280,282,416,303,,MIDM
+
+Variable Va2
+Definition: otp(165,-185)
+NodeLocation: 1168,352,1
+NodeSize: 48,24
+DisplayInputs: Function OTP
+
+Decision SCW
+Title: Scoring Curve Weight
+Units: 0-1
+Description: 0=0% to 1=100%
+Definition: 0
+NodeLocation: 88,376,1
+NodeSize: 48,32
+Aliases: FormNode Fo1537918892
+
+Decision EVS
+Title: Event Score
+Description: If single event
+Definition: Table(iGP,iTVH)(~
+53,62,~
+53,62,~
+0,0,~
+26,30,~
+27,32,~
+0,0,~
+0,0)
+NodeLocation: 1144,40,1
+NodeSize: 48,24
+DefnState: 2,-6,193,416,303,0,DFNM
+ValueState: 2,152,154,416,303,,MIDM
+Aliases: FormNode Fo1537919044
+ReformDef: [iTVH,iGP]
+
+Decision EGT
+Title: Event Game State (Time, Foul State 0.-N, Possession (H,V,N)
+Description: Number of seconds of game time remaining
+Definition: Table(iGS)(1441,0,"N")
+NodeLocation: 888,160,1
+NodeSize: 64,56
+DefnState: 2,1952,76,400,300,0,DFNM
+Aliases: FormNode Fo1537919046
+
+Decision NoA
+Title: Number of Alternates
+Units: 1 to 25 (per side)
+Definition: 10
+NodeLocation: 104,464,1
+NodeSize: 48,24
+
+Decision InTSS
+Title: Input - Team Shooting Stats
+Definition: Table(iTVH,iSHS,iAR)(~
+0.38,0.16,~
+0.49,0.54,~
+0.83,0.3,~
+0.51,1,~
+0.35,0.17,~
+0.48,0.51,~
+0.78,0.32,~
+0.49,1)
+NodeLocation: 520,120,1
+NodeSize: 48,40
+Aliases: FormNode Fo1543629784
+Att_EditSliceState: [iAR,2,iTVH,1,iSHS,1]
+
+Decision InLLF
+Title: Input - Live Line Feed
+Definition: Table(iGP,iBL,iGL2)(~
+0,1.724,2.25,~
+-2,1.952,1.952,~
+231,1.943,1.961,~
+0,0,0,~
+0,0,0,~
+0,0,0,~
+0,0,0,~
+0,0,0,~
+0,0,0,~
+0,0,0,~
+0,0,0,~
+0,0,0,~
+0,0,0,~
+0,0,0,~
+0,0,0,~
+0,0,0,~
+0,0,0,~
+0,0,0,~
+0,0,0,~
+0,0,0,~
+0,0,0)
+NodeLocation: 336,304,1
+NodeSize: 48,32
+WindState: 2,759,6,720,350
+DefnState: 2,1668,59,416,303,0,DFNM
+ValueState: 2,104,106,416,303,,MIDM
+Aliases: FormNode Fo1550078119
+ReformDef: [iBL,iGL2]
+ReformVal: [iGL2,iBL]
+Att_ResultSliceState: [iGP,2,iBL,1,iGL2,1]
+Att_EditSliceState: [iGP,7,iGL2,1,iBL,1]
+
+Close Interface_Objects
+
+Module Input_Output_Module
+Title: Input/Output Module
+Author: jayal
+Date: Sat, Aug 18, 2018 7:51 PM
+NodeLocation: 456,288,1
+NodeSize: 64,24
+DiagState: 2,12,37,1488,830,17
+
+FormNode Fo1534646508
+Title: Input - Stats Feed
+Definition: 0
+NodeLocation: 432,128,1
+NodeSize: 264,16
+NodeInfo: 1,1,1,1,1,1,0,,1,,0,,,
+NodeColor: 65535,32766,1
+Original: InTSF
+
+FormNode Fo1534646509
+Title: Input - Historic Time Scoring Curve
+Definition: 0
+NodeLocation: 432,176,1
+NodeSize: 264,16
+NodeInfo: 1,1,1,1,1,1,0,,1,,0,,,
+NodeColor: 65535,32766,1
+Original: InSC
+
+FormNode Fo1534646507
+Title: Input - Market Line Feed
+Definition: 0
+NodeLocation: 432,80,1
+NodeSize: 264,16
+NodeInfo: 1,1,1,1,1,1,0,,1,,0,,,
+NodeColor: 65535,32766,1
+Original: InMLF
+
+FormNode Fo1537918889
+Title: Market/Stats Ratio
+Definition: 0
+NodeLocation: 432,288,1
+NodeSize: 264,16
+NodeInfo: 1,0,0,1,1,1,0,,1,,0,,,
+NodeColor: 52427,39321,1
+Original: MSR
+
+FormNode Fo1537918892
+Title: Scoring Curve Weight
+Definition: 0
+NodeLocation: 432,344,1
+NodeSize: 264,16
+NodeInfo: 1,0,0,1,1,1,0,,1,,0,,,
+NodeColor: 52427,39321,1
+Original: SCW
+
+FormNode Fo1537919044
+Title: Event Score
+Definition: 0
+NodeLocation: 432,408,1
+NodeSize: 264,16
+NodeInfo: 1,0,0,1,1,1,0,,1,,0,,,
+NodeColor: 42599,65535,19661
+Original: EVS
+
+FormNode Fo1537919046
+Title: Event Game Time
+Definition: 0
+NodeLocation: 432,456,1
+NodeSize: 264,16
+NodeInfo: 1,0,0,1,1,1,0,,1,,0,,,
+NodeColor: 42599,65535,19661
+Original: EGT
+
+FormNode Fo1538329051
+Title: Main Lines 3 Way
+Definition: 1
+NodeLocation: 972,108,1
+NodeSize: 244,20
+NodeInfo: 1,0,0,1,1,1,0,,1,,0,,,
+Original: ML3
+
+FormNode Fo1538329052
+Title: Moneyline 3 Way
+Definition: 1
+NodeLocation: 972,252,1
+NodeSize: 244,20
+NodeInfo: 1,0,0,1,1,1,0,,1,,0,,,
+Original: MNL3
+
+FormNode Fo1538329053
+Title: Main Lines 2 Way
+Definition: 1
+NodeLocation: 972,60,1
+NodeSize: 244,20
+NodeInfo: 1,0,0,1,1,1,0,,1,,0,,,
+Original: ML2
+
+FormNode Fo1538329054
+Title: Moneyline 2 Way
+Definition: 1
+NodeLocation: 972,300,1
+NodeSize: 244,20
+NodeInfo: 1,0,0,1,1,1,0,,1,,0,,,
+Original: MNL2
+
+FormNode Fo1538329067
+Title: Team Totals 3 Way
+Definition: 1
+NodeLocation: 972,204,1
+NodeSize: 244,20
+NodeInfo: 1,0,0,1,1,1,0,,1,,0,,,
+Original: TTL3
+
+FormNode Fo1538329068
+Title: Team Totals 2 Way
+Definition: 1
+NodeLocation: 972,156,1
+NodeSize: 244,20
+NodeInfo: 1,0,0,1,1,1,0,,1,,0,,,
+Original: TTL2
+
+FormNode Fo1543629784
+Title: Input - Team Shooting Stats
+Definition: 0
+NodeLocation: 432,224,1
+NodeSize: 264,16
+NodeInfo: 1,0,0,1,1,1,0,,1,,0,,,
+NodeColor: 65535,32766,1
+Original: InTSS
+
+FormNode Fo1543714738
+Title: Winning Margin Complete Game
+Definition: 1
+NodeLocation: 972,396,1
+NodeSize: 244,20
+NodeInfo: 1,0,0,1,1,1,0,,1,,0,,,
+Original: Winning_Margin_Compl
+
+FormNode Fo1543714739
+Title: Fixed Ranges Output
+Definition: 1
+NodeLocation: 972,444,1
+NodeSize: 244,20
+NodeInfo: 1,0,0,1,1,1,0,,1,,0,,,
+Original: ORng
+
+FormNode Fo1543714740
+Title: Variable Ranges Output
+Definition: 1
+NodeLocation: 972,492,1
+NodeSize: 244,20
+NodeInfo: 1,0,0,1,1,1,0,,1,,0,,,
+Original: VRNG
+
+FormNode Fo1543714737
+Title: Winning Margin 48 minutes Output
+Definition: 1
+NodeLocation: 972,348,1
+NodeSize: 244,20
+NodeInfo: 1,0,0,1,1,1,0,,1,,0,,,
+Original: oWM48
+
+FormNode Fo1546131774
+Title: Race to X
+Definition: 1
+NodeLocation: 972,536,1
+NodeSize: 244,16
+NodeInfo: 1,0,0,1,1,1,0,,1,,0,,,
+Original: RX
+
+FormNode Fo1546204014
+Title: Combined Market 6 Ways (ML+Total)
+Definition: 1
+NodeLocation: 972,576,1
+NodeSize: 244,16
+NodeInfo: 1,0,0,1,1,1,0,,1,,0,,,
+Original: CM6
+
+FormNode Fo1546204015
+Title: Combined Markets 4 Ways (HC + Total)
+Definition: 1
+NodeLocation: 972,616,1
+NodeSize: 244,16
+NodeInfo: 1,0,0,1,1,1,0,,1,,0,,,
+Original: CM4
+
+FormNode Fo1546204013
+Title: To Reach X Points
+Definition: 1
+NodeLocation: 972,656,1
+NodeSize: 244,16
+NodeInfo: 1,0,0,1,1,1,0,,1,,0,,,
+Original: TRXP
+
+FormNode Fo1550078119
+Title: Input - Live Line Feed
+Definition: 0
+NodeLocation: 432,512,1
+NodeSize: 264,16
+NodeInfo: 1,0,0,1,1,1,0,,1,,0,,,
+NodeColor: 3,39321,1
+Original: InLLF
+
+FormNode Fo1550093487
+Title: Shaded Moneyline
+Definition: 1
+NodeLocation: 1468,120,1
+NodeSize: 188,24
+NodeInfo: 1,0,0,1,1,1,0,,1,,0,,,
+NodeColor: 1,32770,65535
+Original: Shml
+
+FormNode Fo1550093486
+Title: Shaded Main Lines
+Definition: 1
+NodeLocation: 1468,64,1
+NodeSize: 188,24
+NodeInfo: 1,0,0,1,1,1,0,,1,,0,,,
+NodeColor: 1,32770,65535
+Original: SML
+
+Close Input_Output_Module
+
+Module Kernel
+Title: Kernel
+Author: jayal
+Date: Sun, Sep 23, 2018 11:34 AM
+NodeLocation: 448,368,1
+NodeSize: 48,24
+DiagState: 2,12,62,1695,893,17
+
+Variable TMTS
+Title: Team Market to Stat Conversion
+Definition: var NVP:=otp(inmlf[iGL2="T"],inmlf[iGL2="S1"],inmlf[iGL2="S2"]);~
+var bpp:=bpc(nvp[ibl="SP",iGL2="T"]*2,nvp[ibl="ML",iGL2="S1"]);~
+var pM:=if nvp[iGL2="S1"]=0 then 0 else nvp[iGL2="S1"]-0.5;~
+var SpM:=0.5*(pM[ibl="SP"]/-PerM);~
+var ToM:=0.5*(pM[ibl="TO"]/PerM);~
+var sp:=nvp[ibl="SP",iGL2="T"]+spm;~
+var Tot:=nvp[iGL2="T",ibl="TO"]+ToM;~
+sp:=if isnan(sp) then 0 else sp;~
+tot:=if isnan(tot) then 0 else tot;~
+var vldl:=if tot=0 or (sp=0 and nvp[iGL2="S1",ibl="SP"]=0) then 0 else 1;~
+var sco:=array(itvh,[(tot-sp)/2,(tot+sp)/2])*vldl;~
+sco[igp="H1"]:=if sco[igp="H1"]=0 then sco[igp="CG"]*0.50934 else sco[igp="H1"];~
+sco[igp="Q1"]:=if sco[igp="Q1"]=0 then sco[igp="H1"]*0.5102 else sco[igp="Q1"];~
+sco[igp="H2"]:=sco[igp="CG"]-sco[igp="H1"];~
+sco[igp="Q3"]:=if sco[igp="Q3"]=0 then sco[igp="H2"]*0.4998 else sco[igp="Q3"];~
+sco[igp="Q2"]:=sco[igp="H1"]-sco[igp="Q1"];~
+sco[igp="Q4"]:=sco[igp="H2"]-sco[igp="Q3"]; ~
+(sco*(ptr*(1-scw)+tscao*scw))*(1-isw)+sfag*isw 
+NodeLocation: 544,256,1
+NodeSize: 56,40
+WindState: 2,371,200,720,350
+ValueState: 2,492,237,416,303,,MIDM
+ReformVal: [iTVH,iGP]
+Att_ResultSliceState: [iSW,1,iGP,1,iTVH,1]
+
+Variable TSCAO
+Title: Team Scoring Curve Aggregation Object
+Definition: var tst4:=0;~
+tst4[igp=iqt]:=sum(tsc[iqt=igp],igt);~
+tst4[igp='H1']:=(tst4[igp="Q1"]+tst4[igp="Q2"])/2;~
+tst4[igp='H2']:=(tst4[igp="Q3"]+tst4[igp="Q4"])/2;~
+tst4[igp='CG']:=(tst4[igp="H1"]+tst4[igp="H2"])/2;~
+tst4
+NodeLocation: 736,288,1
+NodeSize: 56,56
+WindState: 2,1196,236,720,350
+ValueState: 2,40,50,400,300,0,MIDM
+ReformVal: [iTVH,iGP]
+Att_ResultSliceState: [iSTT,1,iGP,1,iTVH,1]
+
+Variable ATT
+Title: Aggregated Team Totals
+Definition: var t:=iadjt;~
+var s:=iadjs;~
+var v:=iadjt/2-iadjs/2;~
+var h:=iadjt/2+iadjs/2;~
+var o:=array(itvh,[v,h]);~
+tmts+o
+NodeLocation: 504,384,1
+NodeSize: 56,32
+WindState: 2,1261,149,720,350
+ValueState: 2,40,50,853,297,0,MIDM
+ReformVal: [iTVH,iSW]
+Att_ResultSliceState: [iGP,6,iAdjT,9,iAdjS,4,iSW,1,iTVH,1]
+
+Variable AGSD
+Title: Aggregated Std Dev
+Definition: /* var sd:=array(itgt,[0.53*sum(sqr(tsao[istt="S"]),itvh),sum(sqr(tsao[istt="S"]),itvh)]); */~
+~
+var t:=array(iTGT,[inmlf[igp="CG",ibl="SP",iGL2="T"],inmlf[igp="CG",ibl="TO",iGL2="T"]]);~
+var p:=array(igp,[1,.55,.55,.33,.33,.33,.33]);~
+/* var s:=(array(itgt,[sqr(11.0148-.284016*(if t[itgt="S"]>12.5 then 12.5 else if t[itgt="S"] <2.5 then 0 else t[itgt="S"])),sqr(13.118+0.0754*(if t[itgt="T"]<180 then 0 else if t[itgt="T"]>225 then 45 else t[itgt="T"]-180))]))*p; */~
+  var s:=(array(itgt,[sqr(8.537),sqr(13.118+0.0754*(if t[itgt="T"]<180 then 0 else if t[itgt="T"]>225 then 45 else t[itgt="T"]-180))]))*p;~
+/* var agt:=if sum(tsao[istt="S"],itvh)=0 then s else s*(1-msr)+sd*msr; */~
+var  agt:=sqrt(s*(if ptr=0 then 0 else ptr*.7+0.3));~
+if agt=0 then .00000000000001 else agt
+NodeLocation: 424,496,1
+NodeSize: 56,24
+Att_ResultSliceState: [iTGT,1,iTVH,1,iGP,1]
+
+Variable TSC
+Title: Team Scoring Curve
+Definition: insc*etrm
+NodeLocation: 688,120,1
+NodeSize: 48,32
+WindState: 2,102,82,720,350
+ValueState: 2,568,570,1031,303,,MIDM
+Att__TotalsIndex: [iGT,iQT]
+Att_ResultSliceState: [iTVH,2,iQT,1,iGT,1]
+
+Variable ETRM
+Title: Event Time Remaining Matrix
+Definition: var ipt:=egt[igs="S"];~
+var q:=5-ipt/720;~
+var m:=(1-(q-floor(q,0)))*12;~
+q:=floor(q,0);~
+m:=if q=5 then 0 else m;~
+q:=if q>4 then 4 else q;~
+var qm:=parsenumber(SelectText(igt,2));~
+var u:=if ("Q"&q)<=iqt then 1 else 0;~
+u[iqt="Q"&q]:=if m<qm then 0 else u;~
+m:=if m=12 then 11.999999 else m;~
+u[iqt="Q"&q,igt="M"&(floor(m,0))]:=m-floor(m,0); ~
+u
+NodeLocation: 464,160,1
+NodeSize: 48,40
+WindState: 2,271,616,720,350
+ValueState: 2,504,506,931,348,,MIDM
+Att_ResultSliceState: [iQT,1,iPLY,1,iGT,1]
+
+Variable ML3
+Title: Main Lines 3 Way
+Definition: var i:=ialt do~
+CP48[iialt=i]~
+/* var sd:=sqrt(sum(sqr(agsd),itvh));~
+var m:=array(itgt,[round((att[itvh="H"]-att[itvh="V"]+lsc[itgt='S'])*2)/2,round((sum(att,itvh)+lsc[itgt="T"])*2)/2]);~
+var trm:=array(itgt,[(att[itvh="H"]-att[itvh="V"]+lsc[itgt="S"]),(sum(att,itvh)+lsc[itgt="T"])]);~
+var s2:=cumnormal(iialt+m,trm,sd);~
+var s3:=if floor(m+iialt)=(m+iialt) then dens_normal(m+iialt,trm,sd)*1.4429 else 0;~
+s2:=s2-(s3*s2);~
+var s1:=1-(s2+s3);~
+var o:=array(igl3,[m+iialt,s1,s2,s3])*if ptr=0 then 0 else 1;~
+o[itgt="S",igl3="T",itvh="H"]:=-o[itgt="S",igl3="T",itvh="H"];~
+o[itvh="V"] */
+NodeLocation: 216,320,1
+NodeSize: 48,24
+WindState: 2,901,26,720,350
+ValueState: 2,1808,27,627,303,,MIDM
+Aliases: FormNode Fo1538329051
+ReformVal: [iGL3,iALT]
+Att_ResultSliceState: [iTGT,2,iGP,1,iSW,1,iALT,1,iGL3,1]
+
+Variable LSC
+Title: Live Scoring
+Definition: var s:=lss; ~
+var t:= (1-ptr);~
+t[igp="Q2"]:=t[igp="H1"];~
+t[igp=["Q3","Q4","H2"]]:=t[igp="CG"];~
+~
+s[itgt="S"]:=s*t;~
+s[igp="H1"]:=(s[igp="Q1"]+s[igp="Q2"]);~
+s[igp="H2"]:=(s[igp="Q3"]+s[igp="Q4"]);~
+s[igp="CG"]:=(s[igp="H1"]+s[igp="H2"]);~
+var n1:=array(itgt,[(s[itvh="H"]-s[itvh="V"]),sum(s,itvh)]);~
+n1
+NodeLocation: 64,232,1
+NodeSize: 48,24
+WindState: 2,1762,37,720,350
+ValueState: 2,1719,533,734,303,,MIDM
+
+Variable MNL3
+Title: Moneyline 3 Way
+Definition: var sd:=sqrt(sum(sqr(agsd[itgt="S"]),itvh));~
+var trm:=(att[itvh="H"]-att[itvh="V"])+lsc[itgt="S"];~
+var s1:=cumnormal(0,trm,sd);~
+var s3:=dens_normal(0,trm,sd);~
+s1:=s1-(s3/2);~
+var s2:=1-(s1+s3);~
+array(igl3,[0,s1,s2,s3])
+NodeLocation: 152,432,1
+NodeSize: 48,24
+WindState: 2,133,47,720,350
+Aliases: FormNode Fo1538329052
+Att_ResultSliceState: [iTVH,2,iGL3,1,iGP,1]
+
+Variable ML2
+Title: Main Lines 2 Way
+Definition: var i:=igl2 do~
+var tr:=ml3[igl3=i];~
+var s:=tr[igl2="S1"]+tr[igl2="S2"];~
+tr:=if selecttext(igl2,1,1)="S" then tr/(if s=0 then 1 else s) else tr;~
+tr
+NodeLocation: 264,528,1
+NodeSize: 48,24
+WindState: 2,102,82,720,350
+ValueState: 2,531,80,416,303,,MIDM
+Aliases: FormNode Fo1538329053
+ReformVal: [iGL2,iALT]
+Att_ResultSliceState: [iGP,1,iTGT,1,iSW,2,iAdjT,1,iAdjS,21,iALT,1,iGL2,1]
+
+Variable MNL2
+Title: Moneyline 2 Way
+Definition: var i:=igl2 do~
+var tr:=mnl3[igl3=i];~
+var s:=tr[igl2="S1"]+tr[igl2="S2"];~
+tr:=if selecttext(igl2,1,1)="S" then tr/(if s=0 then 1 else s) else tr;~
+tr
+NodeLocation: 128,528,1
+NodeSize: 48,24
+ValueState: 2,1908,565,416,303,,MIDM
+Aliases: FormNode Fo1538329054
+Att_ResultSliceState: [iSW,2,iGL2,1,iGP,1]
+
+Variable TTL3
+Title: Team Totals 3 Way
+Definition: tp48[iialt=ialt]
+NodeLocation: 232,112,1
+NodeSize: 48,32
+WindState: 2,1516,408,720,350
+ValueState: 2,2061,201,416,303,,MIDM
+Aliases: FormNode Fo1538329067
+ReformVal: [iGL3,iALT]
+Att_ResultSliceState: [iGP,7,iTVH,2,iSW,1,iALT,1,iGL3,1]
+
+Variable LSS
+Title: Live Scoring per side
+Definition: var s:=evs; /* if pme then evs else sum(psc[ism="P"],iply); */~
+var ps:=if egt[igs="P"]<>"H" then "V" else "H";~
+var v:=if egt[igs="S"]=2880 then 0 else if egt[igs="S"]>=2160 then 1 else if egt[igs="S"]>1440 then 2 else if egt[igs="S"]>720 then 3 else 4;~
+var posv:=if v=0 then 0 else intss[itvh=ps,iar="R"];~
+/* posv[iar="R",ishs="FGE"]:=1;~
+posv[iar="A"]:=posv[iar="A"]*posv[iar="R"]; */~
+s[igp="Q"&if v=0 then 1 else v,itvh=ps]:=s[igp="Q"&if v=0 then 1 else v,itvh=ps]+if v=0 then 0 else (posv[ishs="F3"]*3+posv[ishs="F2"]*2+posv[ishs="FT"])*intss[ishs="FGE",iar="A",itvh=ps]+egt[igs="F"]*intss[ishs="FT",iar="A",itvh=ps];~
+/* var n1:=array(itgt,[s[itvh="H"]-s[itvh="V"],sum(s,itvh)]); */~
+var t:= (1-ptr);~
+s[igp="H1"]:=(s[igp="Q1"]+s[igp="Q2"]);~
+s[igp="H2"]:=(s[igp="Q3"]+s[igp="Q4"]);~
+s[igp="CG"]:=(s[igp="H1"]+s[igp="H2"]);~
+var n1:=s;~
+n1
+NodeLocation: 72,144,1
+NodeSize: 48,32
+WindState: 2,102,82,923,224
+ValueState: 2,1796,50,571,300,0,MIDM
+Att_ResultSliceState: [iTGT,1,iTVH,1,iGP,1]
+
+Variable TTL2
+Title: Team Totals 2 Way
+Definition: var i:=igl2 do~
+var tr:=ttl3[igl3=i];~
+var s:=tr[igl2="S1"]+tr[igl2="S2"];~
+tr:=if selecttext(igl2,1,1)="S" then tr/(if s=0 then 1 else s) else tr;~
+tr
+NodeLocation: 400,80,1
+NodeSize: 48,32
+Aliases: FormNode Fo1538329068
+ReformVal: [iGL2,iALT]
+Att_ResultSliceState: [iGP,2,iTVH,2,iSW,1,iALT,1,iGL2,1]
+
+Variable PTR
+Title: Period Time Remaning
+Definition: var rt:=0;~
+var q:=sequence(0,3,1) do~
+rt[igp="Q"&4-q]:=(egt[igs="S"]-(720*q))/720;~
+rt:=if rt>1 then 1 else if rt<0 then 0 else rt;~
+rt[igp="H1"]:=(rt[igp="Q1"]+rt[igp="Q2"])/2;~
+rt[igp="H2"]:=(rt[igp="Q3"]+rt[igp="Q4"])/2;~
+rt[igp="CG"]:=(rt[igp="H1"]+rt[igp="H2"])/2;~
+rt
+NodeLocation: 384,232,1
+NodeSize: 48,32
+WindState: 2,971,425,720,350
+
+Variable oWM48
+Title: Winning Margin 48 minutes Output
+Definition: var o:=CP48[itgt="S",igl3="S3"];~
+var t:=CP48[itgt="S",igl3="T"];~
+var nwo:=0;~
+for i:=iwm do~
+nwo[iwm=i]:=if i=0 then o[iialt=t[iialt=0]] else sum(if (if i<=0 then t>=i  else t<=i) and (if abs(i)=19 then 0 else (if i<0 then t<i+3 else t>i-3)) then o else if i=-19 and t<=-19 then o else if i=19 and t>=19 then o else 0 ,iialt);~
+/* nwo[iwm=21]:=1-sum(nwo,iwm); */~
+nwo:=nwo/sum(nwo,iwm);~
+if isnan(nwo) then 0 else nwo
+NodeLocation: 704,448,1
+NodeSize: 48,40
+WindState: 2,102,82,720,350
+ValueState: 2,1295,316,681,512,,MIDM
+Aliases: FormNode Fo1543714737
+ReformVal: [iGP,iWM]
+Att__TotalsIndex: [iWM]
+Att_ResultSliceState: [iIALT,202,iWM,1,iGP,1]
+
+Variable CP48
+Title: Central Probability 48 minutes
+Definition: ~
+var sd:=sqrt(sum(sqr(agsd),itvh));~
+var m:=array(itgt,[round((att[itvh="H"]-att[itvh="V"]+lsc[itgt='S'])*2)/2,round((sum(att,itvh)+lsc[itgt="T"])*2)/2]);~
+var trm:=array(itgt,[(att[itvh="H"]-att[itvh="V"]+lsc[itgt="S"]),(sum(att,itvh)+lsc[itgt="T"])]);~
+var s1:=cumnormal(iialt+m,trm,sd);~
+var s3:=if floor(m+iialt)=(m+iialt) then dens_normal(m+iialt,trm,sd) else 0;~
+s1:=s1-(s3*s1);~
+var s2:=1-(s1+s3);~
+var o:=array(igl3,[m+iialt,s1,s2,s3])*if ptr=0 then 0 else 1;~
+/* o[itgt="S",igl3="T"]:=-o[itgt="S",igl3="T"]; */~
+o
+NodeLocation: 264,216,1
+NodeSize: 56,32
+WindState: 2,673,96,720,350
+ValueState: 2,780,148,627,303,,MIDM
+ReformVal: [iGL3,iALT]
+Att__TotalsIndex: [iIALT,iGL3]
+Att_ResultSliceState: [iTGT,2,iGP,1,iSW,1,iIALT,1,iGL3,1]
+
+Variable Winning_Margin_Compl
+Title: Winning Margin Complete Game
+Definition: var o:=CPcg[itgt="S",igl3="S3"];~
+var t:=CPcg[itgt="S",igl3="T"];~
+var nwo:=0;~
+for i:=iwm do~
+nwo[iwm=i]:=if i=0 then o[iialt=t[iialt=0]] else sum(if (if i<=0 then t>=i  else t<=i) and (if abs(i)=19 then 0 else (if i<0 then t<i+3 else t>i-3)) then o else if i=-19 and t<=-19 then o else if i=19 and t>=19 then o else 0 ,iialt);~
+/* nwo[iwm=21]:=1-sum(nwo,iwm); */~
+nwo:=nwo/sum(nwo,iwm);~
+if isnan(nwo) then 0 else nwo
+NodeLocation: 840,432,1
+NodeSize: 48,40
+WindState: 2,102,82,720,350
+ValueState: 2,2145,248,416,534,,MIDM
+Aliases: FormNode Fo1543714738
+ReformVal: [iGP,iWM]
+Att__TotalsIndex: [iWM]
+
+Variable CPCG
+Title: Central Probability Complete Game
+Definition: var i:=cp48[itgt="S",iialt=0,igl3="T"];~
+var o:=cp48[iialt=i,itgt="S"]; ~
+var fo:=cp48;~
+fo[itgt="S",iialt=i,igl3="S3",igp="CG"]:=0;~
+fo[itgt="S",igl3="S3"]:=fo[itgt="S",igl3="S3"]/sum(fo[itgt="S",igl3="S3"],iialt);~
+fo[itgt="S",iialt=i,igl3="S1"]:=o[igl3="S1"]+o[igl3="S3"]*o[igl3="S2"]/(1-o[igl3="S3"]);~
+fo[itgt="S",iialt=i,igl3="S2"]:=o[igl3="S2"]+o[igl3="S3"]*o[igl3="S1"]/(1-o[igl3="S3"]);~
+fo
+NodeLocation: 1040,152,1
+NodeSize: 48,40
+ValueState: 2,385,182,615,432,,MIDM
+ReformVal: [iGL3,iIALT]
+Att__TotalsIndex: [iIALT]
+Att_ResultSliceState: [iGP,1,iTGT,2,iSW,1,iIALT,1,iGL3,1]
+
+Variable TC
+Title: Tie Constant
+Definition: 1.4429
+NodeLocation: 856,56,1
+NodeSize: 48,24
+
+Variable ORng
+Title: Fixed Ranges Output
+Definition: var cv:=array(itgt,[inmlf[ibl="SP",igl2="T"],inmlf[ibl='TO',iGL2='T']]);~
+var o:=CPcg[igl3="S3"];~
+var t:=CPcg[igl3="T"];~
+var nwo:=0;~
+for i:=irng do~
+for p:=igl3 do~
+nwo[irng=i,igl3=p]:=if p="T" then cv else sum(if p="S1" then if t>cv+i then o else 0 else if p="S2" then if t<cv-i then o else 0 else if t>=cv-i and t<=cv+i then o else 0,iialt); ~
+/* nwo[iwm=21]:=1-sum(nwo,iwm); ~
+nwo:=nwo/sum(nwo,irng); */~
+/* if isnan(nwo) then 0 else nwo */~
+nwo
+NodeLocation: 1016,408,1
+NodeSize: 48,32
+ValueState: 2,2076,562,416,303,,MIDM
+Aliases: FormNode Fo1543714739
+ReformVal: [iGL3,iTGT]
+Att_ResultSliceState: [iGP,1,iRNG,1,iSW,1,iTGT,1,iGL3,4]
+
+Variable VRNG
+Title: Variable Ranges Output
+Definition: var cv:=cpcg[iGL3='T',iialt=0];~
+var o:=CPcg[igl3="S3"];~
+var t:=CPcg[igl3="T"];~
+var nwo:=0;~
+for i:=irng do~
+for p:=igl3 do~
+nwo[irng=i,igl3=p]:=if p="T" then cv else sum(if (p="S1" and itgt="T") or (p="S2" and itgt="S")  then if t>cv+i then o else 0 else if (p="S2" and itgt="T") or (p="S1" and itgt="S") then if t<cv-i then o else 0 else if t>=cv-i and t<=cv+i then o else 0,iialt); ~
+/* nwo[iwm=21]:=1-sum(nwo,iwm); ~
+nwo:=nwo/sum(nwo,irng); */~
+/* if isnan(nwo) then 0 else nwo */~
+nwo
+NodeLocation: 1152,400,1
+NodeSize: 48,32
+ValueState: 2,2107,214,416,303,,MIDM
+Aliases: FormNode Fo1543714740
+ReformVal: [iGL3,iTGT]
+Att_ResultSliceState: [iGP,1,iRNG,3,iSW,1,iTGT,1,iGL3,2]
+
+Variable SFAG
+Title: Stats Feed Aggregation
+Definition: var s:=intsf[isas="OS"];~
+s:=s*if itvh="V" then intsf[isas="DS",itvh="H"] else intsf[isas="DS",itvh="V"];~
+var fsc:=scw*insc+etrm*(1-scw);~
+s:=s*fsc;~
+var fv:=0;~
+var q:=iqt do~
+fv[igp=q]:=sum(s[iqt=q],igt);~
+fv[igp="H1"]:=fv[igp="Q1"]+fv[igp="Q2"];~
+fv[igp="H2"]:=fv[igp="Q3"]+fv[igp="Q4"];~
+fv[igp="CG"]:=fv[igp="H1"]+fv[igp="H2"];~
+fv
+NodeLocation: 592,560,1
+NodeSize: 56,24
+ValueState: 2,440,442,602,303,,MIDM
+
+Variable TP48
+Title: Team Probability 48 minutes
+Definition: var m:=round(att*2)/2;~
+var trm:=att;~
+var s2:=cumnormal(iialt+m,trm,agsd[itgt="S"]);~
+var s3:=if floor(m+iialt)=(m+iialt) then dens_normal(m+iialt,trm,agsd[itgt="S"]) else 0;~
+s2:=s2-s3/2;~
+var s1:=1-(s2+s3);~
+var o:=array(igl3,[m+iialt+round(lss*2)/2,s1,s2,s3]);~
+/* o:=if igl3<>"T" and (o<0.001 or o>0.999) then 0 else o;~
+o:=if o[igl3="S1"]+o[igl3="S2"]+o[igl3="S3"]<>1 then 0 else o; */~
+o
+NodeLocation: 1232,184,1
+NodeSize: 56,32
+ValueState: 2,125,857,416,303,,MIDM
+ReformVal: [iGL3,iIALT]
+Att__TotalsIndex: [iGL3]
+Att_ResultSliceState: [iGP,1,iTVH,1,iSW,2,iIALT,1,iGL3,1]
+
+Variable CTS
+Title: Central Target Shift
+Definition: tp48[igl3="T",iialt=0]
+NodeLocation: 1400,240,1
+NodeSize: 48,32
+ReformVal: [iTVH,iSW]
+Att_ResultSliceState: [iGP,3,iSW,1,iTVH,1]
+
+Variable RX
+Title: Race to X
+Definition: var n:=tp48[igl3="S2",itvh="V",iialt=irtx-cts[itvh="V"]]*tp48[igl3="S2",itvh="H",iialt=irtx-cts[itvh="H"]];~
+var nrtx:=if igp="CG" then if irtx>69 then irtx else 0 else if  selecttext(igp,1,1)="H" then if irtx<69 and irtx>40 then irtx else 0 else if irtx<41 then irtx else 0;~
+var ptt:=if (nrtx*2/3)>(lss) then nrtx-lss else 0;~
+var mvsd:=min(ptt,itvh);~
+var ptp:=mvsd/cts[igp="CG"];~
+var rxsd:=sqrt(agsd[itgt="S"]^2*(ptp*.7+.3*if ptp=0 then 0 else 1));~
+var o:=if ptt<0 then 0 else 1-cumnormal(ptt,ptp*cts,rxsd);~
+o:=if sum(o,itvh)=0 then 0 else o/sum(o,itvh);~
+o:=o*(1-n);~
+var nwo:=array(igl3,[nrtx,o[itvh="V"],o[itvh="H"],n]);~
+nwo:=if nwo[igl3="S1"]>0.999 or nwo[igl3="S2"]>0.999 or nwo[igl3="S3"]>0.999 then 0 else nwo; ~
+nwo:=if nrtx=0 then 0 else nwo;~
+nwo
+NodeLocation: 1376,336,1
+NodeSize: 48,24
+WindState: 2,1774,65,720,350
+ValueState: 2,1561,396,416,303,,MIDM
+Aliases: FormNode Fo1546131774
+ReformVal: [iGL3,iRTX]
+Att__TotalsIndex: []
+Att_ResultSliceState: [iSW,1,iGP,7,iAdjT,21,iAdjS,10,iRTX,1,iGL3,1]
+
+Variable TRXP
+Title: To Reach X Points
+Definition: var tg:=ctrx+0.5;~
+var yt:=tp48[igl3="S1",iialt=(tg-cts)];~
+var vo:=yt[itvh="V"]*(1-yt[itvh="H"]);~
+var ho:=yt[itvh="H"]*(1-yt[itvh="V"]);~
+var nt:=(1-yt[itvh="H"])*(1-yt[itvh="V"]);~
+var bt:=yt[itvh="V"]*yt[itvh="H"];~
+var fo:=array(itrxp,[ctrx,vo,ho,bt,nt]);~
+fo:=if fo<0.01 or fo>.99 then 0 else fo;~
+fo:=if sum(fo,itrxp)<>1 then 0 else fo;~
+fo[itrxp="T"]:=ctrx;~
+fo
+NodeLocation: 1392,440,1
+NodeSize: 48,24
+ValueState: 2,472,474,416,295,,MIDM
+Aliases: FormNode Fo1546204013
+Att__TotalsIndex: [iTRXP]
+Att_ResultSliceState: [iSW,3,iTRT,3,iTRXP,1,iGP,1]
+
+Variable CM6
+Title: Combined Market 6 Ways (ML+Total)
+Definition: var ct:=ml2[igl2="T",itgt="T",ialt=icmta];~
+ct:=if ct=floor(ct) then ct+0.5 else ct;~
+ct:=ct-ctsml[itgt="T"];~
+var o:=ml2[igl2="S1",itgt="T",ialt=ct];~
+var u:=ml2[igl2="S2",itgt="T",ialt=ct];~
+var h:=mnl3[igl3="S2"];~
+var v:=mnl3[igl3="S1"];~
+var t:=mnl3[igl3="S3"];~
+var fo:=array(icm6,[ct+ctsml[itgt="T"],v*o,v*u,h*o,h*u,t*o,t*u]);~
+fo
+NodeLocation: 1232,504,1
+NodeSize: 56,40
+Aliases: FormNode Fo1546204014
+ReformVal: [iCMTA,iCM6]
+Att__TotalsIndex: [iCM6]
+Att_ResultSliceState: [iGP,1,iSW,2,iCM6,1,iCMTA,1]
+
+Variable CTSML
+Title: Central Target Shift ML
+Definition: ml3[ialt=0,igl3="T"]
+NodeLocation: 384,584,1
+NodeSize: 48,32
+
+Variable CM4
+Title: Combined Markets 4 Ways (HC + Total)
+Definition: var ct:=ml2[igl2="T",itgt="T",ialt=icmta];~
+ct:=if ct=floor(ct) then ct+0.5 else ct;~
+ct:=ct-ctsml[itgt="T"];~
+var sp:=ml2[igl2="T",itgt="S",ialt=icms];~
+sp:=if sp=floor(sp) then sp+(0.5*sign(sp)) else sp;~
+sp:=sp-ctsml[itgt="S"];~
+var o:=ml2[igl2="S1",itgt="T",ialt=ct];~
+var u:=ml2[igl2="S2",itgt="T",ialt=ct];~
+var h:=ml2[igl2="S2",itgt="S",ialt=sp];~
+var v:=ml2[igl2="S1",itgt="S",ialt=sp];~
+array(icm4,[ct+ctsml[itgt="T"],sp+ctsml[itgt="S"],v*o,v*u,h*o,h*u])
+NodeLocation: 1416,520,1
+NodeSize: 56,40
+Aliases: FormNode Fo1546204015
+ReformVal: [iCMTA,iCM4]
+Att__TotalsIndex: []
+Att_ResultSliceState: [iSW,3,iCMS,1,iGP,1,iCM4,1,iCMTA,1]
+
+Variable LT100
+Title: Live to 100%
+Definition: otp(inllf[igl2='T'],inllf[igl2="S1"],inllf[igl2="S2"])
+NodeLocation: 1152,64,1
+NodeSize: 48,24
+ValueState: 2,40,50,400,300,0,MIDM
+ReformVal: [iGL2,iBL]
+
+Variable LML
+Title: Live Main
+Definition: array(itgt,[lt100[ibl="SP"],lt100[ibl="TO"]])
+NodeLocation: 1288,64,1
+NodeSize: 48,24
+WindState: 2,102,82,720,350
+ValueState: 2,488,490,416,303,,MIDM
+Att_ResultSliceState: [iTGT,1,iGL2,1,iGP,1]
+
+Variable SML
+Title: Shaded Main Lines~
+
+Definition: var s0:=subindex(cpcg[igl2="T",iSW=Handle(MSR)],lml[igl2="T"],iialt);~
+var s:=s0[igl3="T"];~
+var ad:=if abs(s)>10 or s=null then 0 else ml2[ialt=s,igl2="S1",iSW=Handle(MSR)]/lml[igl2="S1"];~
+ad:=if ad=0 then 0 else if ad=1 then 1 else ad*.95; ~
+var nl:=ml2[isw=Handle(MSR)];~
+nl[igl2='S1']:=nl[igl2="S1"]/ad;~
+nl:=if isnan(nl) or (igl2<>"T" and nl>1) then 0 else nl;~
+nl[igl2="S2"]:=if nl=0 then 0 else 1-nl[igl2="S1"];~
+nl:=if isnan(nl) or abs(nl)=inf then 0 else nl;~
+nl[igl2="T"]:=if nl[igl2='S1']=0 or nl[igl2='S2']=0 then 0 else nl[igl2="T"];~
+nl~
+
+NodeLocation: 1464,72,1
+NodeSize: 48,24
+WindState: 2,128,760,720,350
+ValueState: 2,1798,539,416,303,,MIDM
+Aliases: FormNode Fo1550093486
+ReformVal: [iGL2,iALT]
+Att_ResultSliceState: [iTGT,1,iGP,1,iALT,28,iGL2,1]
+
+Variable Shml
+Title: Shaded Moneyline~
+
+Definition: var s:=mnl2;~
+var ad:=mnl2[isw=Handle(MSR),igl2="S1"]/lt100[igl2="S1",ibl="ML"];~
+ad:=if ad=0 or isnan(AD) then 0 else if ad=1 then 1 else ad*.985;~
+var nl:=mnl2[isw=Handle(MSR)];~
+nl[igl2='S1']:=if ad=0 then 0 else nl[igl2="S1"]/ad;~
+nl[igl2='S1']:=if nl[igl2="S1"]>1 or nl[igl2="S1"]<0 then 0 else nl[igl2='S1'];~
+nl[igl2="S2"]:=if nl[igl2="S1"]=0 then 0 else 1-nl[igl2="S1"];~
+nl~
+~
+
+NodeLocation: 1520,152,1
+NodeSize: 48,24
+WindState: 2,866,755,720,350
+ValueState: 2,40,50,400,300,0,MIDM
+Aliases: FormNode Fo1550093487
+ReformVal: [iTGT,iGP]
+Att_ResultSliceState: [iSW,3,iGP,1,iGL2,2]
+
+Close Kernel
+
+Module Libraries
+Title: Libraries
+Author: jayal
+Date: Sun, Sep 30, 2018 10:18 AM
+NodeLocation: 408,184,1
+NodeSize: 48,24
+DiagState: 2,1,0,1704,664,17
+
+{!40404|FreePassObjectCount 86sQq6qJq4RNUM0tPBWqCVgcLOsQ2PZu9SyrmK$cu3RVdU8zkXgw6NLRRBxazLn8X2yvd9g9RsJsqnfU8WzaSmryodN$Tj2X7DGDtYyZrNSWehdciIrISdXeQSKuXuTRccTNEwc9Ugz1vfUTjPsLZt_wjZM_les9OOCunLoWwMZomwvTC$9LdsxpZPGiJhr662FpP5kDVfv6D1sQBhBa5t5452aH1aoJiMSJC1R0e39ZqMK3qXpGm31KTueLt7Sww030gLAGo5QUfPK0U9V5JWjbaPxo0GckqvkUR$hQYt1DNB6gLtaYy7KGB1qSoDoewz23fQEr7lCnlnkiRtRkq31GmiP8p3UyD9SZygLr3Mo0wxjHwi0Qn20$8ZJ0Yo7bZUJ70eNlNbu2JskZDb2em_473$kDzJk0PwqohbHf8OQXnZRG$RuVEMYfnP_TxUm9BTLI6yf4jUes$9rdHuOuBEYSRH9uL0yKTelRICvH1aTTPQ8_kEk7QegmYb_UwRf$FFF8pR8hAWZwYcRIubtKqjhzBEYIpMe1$8KvZYWFFhu75AqfXo8pUvbjcXByIpNKMky3RFqR_6PluipwtnXCoJl_UQ7sXnCgxt7GPRMD$cBYAE3wj5eEdh4SkvvqgT7cMYVUPvaIp$X1QfrvwndIpbpopmI$lIW5d_JVdfYP6fTjknmK3rQgIsJcs_3_udC2KNST3qer7iHi4KVYYTDqi05CFtgWl3hJmBThoqjaD7TajoSH9QmR0VzKYklmbGCaju$hYSl7rY2Yt7HLJAtrFQdmUNJe2pR2VvBQZWM5$7ThphL61vmS1Y0Pfk50OGtEb_NoDf6a3Y3b7gFqQ1fIxcI_hP9vfRE2siYQIB50yusrqqsux$4AGOWgq0CPcr5MdwDXtCZxKk9a0UyRxS_X5fFrT5kO3lR9tdN9xkYND4xqjeZVSQPPQRUXchnu09JTfs3HWn1JcwEawIg3TuKnFjDjEnKuT2fHvZDvbI0lVG2qeSH7_slfaVSPNNNOQSWbgnu09KVht5KZq5Og$Kg1OnBb0SvNsMtPxV3fFrT6mR6pWF_lWH4tiYOG81xtpmjiiijmpty29HPZjv5IWl$GXq8Sn7UsFf4VyQuNuPxU2cCoQ2hM1jQ8scM8wjXMD4xqkeaVTQPPQSVYdiow2BKVhu5KZp5NfzHd_Lk7XzOrJoHoKsP_Z8mN0gK$iP7scN9xlZPF6$uniebYXWWXadhlry3CLWhs3HWm1IbuCXtEc$OpEh8c5b6eAkIuU6kN1iO4oXG0nZMB$riZSLGB742111368DIOVdmw4GSft6MdvBVq9WtFe2TvLpHnHoLuS1cDrT7nS8rZI2oaMA_pfVNG94$yvustuvy$39FMUeoz8LZn1GXp6Ql5SpCb0RtJmGlGnKtS1dEsU7nS8rYH0nZMA_qgYQJD83$ywvuvx_27DJRaju3FSft6MdvCWrBYwJj7Z0TxQwQxT0a9lM_dHyeL3nXI3rdQF4wnfYSNJGEDDEGIMQVahow3EOan0FVm2LfzJf1OnAb0SvNsMtPzX6iIwZCtXDvdL4qbNA$qgXPIC73$ywvuuwy$38EMUdny8LZo1IYq7Qk4Qn9YyNqHlEkFnJtQ$bBoR4kP5pWG0nZMA$qfWOHA50yv}
+Library Multivariate_distrib
+Title: Multivariate Distributions
+Description: A library of multivariate distributions.~
+~
+In a multivariate distribution, each sample is a vector.  This vector is identified by an index, identified by the I parameter of the functions in this library.  A Mid value from a distribution function will therefore be indexed by I, whlie a Sample from a distribution function is indexed by both I and Run.  These distribution functions can also be used from within the Random function to generate a single monte-carlo sample, which will be indexed by I.~
+~
+This library also contains functions for generating correlated distributions.  Correlate_with, for example, allows you to generate a univarite distribution with an arbitrary marginal distribution that has a specified rank correlation with an arbitrary reference distribution.   Several functions may be used for generating serial correlations, where each distribution along an index is correlated with the previous point along that index.
+Author: Lonnie Chrisman, Ph.D.~
+Lumina Decision Systems~
+~
+With contributions by:~
+   John Bowers, US FDA.~
+   Max Henrion, Lumina Decision Systems
+Date: Fri, Aug 01, 2003 7:12 PM
+SaveAuthor: Lonnie
+SaveDate: Wed, May 10, 2017 3:31 PM
+DefaultSize: 48,24
+NodeLocation: 112,48,1
+NodeSize: 64,24
+NodeInfo: 1,1,1,1,1,1,0,0,0,0,,,,0
+DiagState: 2,15,10,743,821,17
+WindState: 2,401,199,776,387
+FontStyle: Arial, 15
+Att_PreLoadScript: {!40404|FreePassObjectCount 86sQq6qJq4RNUM0tPBWqCVgcLOsQ2PZu9SyrmK$cu3RVdU8zkXgw6NLRRBxazLn8X2yvd9g9RsJsqnfU8WzaSmryodN$Tj2X7DGDtYyZrNSWehdciIrISdXeQSKuXuTRccTNEwc9Ugz1vfUTjPsLZt_wjZM_les9OOCunLoWwMZomwvTC$9LdsxpZPGiJhr662FpP5kDVfv6D1sQBhBa5t5452aH1aoJiMSJC1R0e39ZqMK3qXpGm31KTueLt7Sww030gLAGo5QUfPK0U9V5JWjbaPxo0GckqvkUR$hQYt1DNB6gLtaYy7KGB1qSoDoewz23fQEr7lCnlnkiRtRkq31GmiP8p3UyD9SZygLr3Mo0wxjHwi0Qn20$8ZJ0Yo7bZUJ70eNlNbu2JskZDb2em_473$kDzJk0PwqohbHf8OQXnZRG$RuVEMYfnP_TxUm9BTLI6yf4jUes$9rdHuOuBEYSRH9uL0yKTelRICvH1aTTPQ8_kEk7QegmYb_UwRf$FFF8pR8hAWZwYcRIubtKqjhzBEYIpMe1$8KvZYWFFhu75AqfXo8pUvbjcXByIpNKMky3RFqR_6PluipwtnXCoJl_UQ7sXnCgxt7GPRMD$cBYAE3wj5eEdh4SkvvqgT7cMYVUPvaIp$X1QfrvwndIpbpopmI$lIW5d_JVdfYP6fTjknmK3rQgIsJcs_3_udC2KNST3qer7iHi4KVYYTDqi05CFtgWl3hJmBThoqjaD7TajoSH9QmR0VzKYklmbGCaju$hYSl7rY2Yt7HLJAtrFQdmUNJe2pR2VvBQZWM5$7ThphL61vmS1Y0Pfk50OGtEb_NoDf6a3Y3b7gFqQ1fIxcI_hP9vfRE2siYQIB50yusrqqsux$4AGOWgq0CPcr5MdwDXtCZxKk9a0UyRxS_X5fFrT5kO3lR9tdN9xkYND4xqjeZVSQPPQRUXchnu09JTfs3HWn1JcwEawIg3TuKnFjDjEnKuT2fHvZDvbI0lVG2qeSH7_slfaVSPNNNOQSWbgnu09KVht5KZq5Og$Kg1OnBb0SvNsMtPxV3fFrT6mR6pWF_lWH4tiYOG81xtpmjiiijmpty29HPZjv5IWl$GXq8Sn7UsFf4VyQuNuPxU2cCoQ2hM1jQ8scM8wjXMD4xqkeaVTQPPQSVYdiow2BKVhu5KZp5NfzHd_Lk7XzOrJoHoKsP_Z8mN0gK$iP7scN9xlZPF6$uniebYXWWXadhlry3CLWhs3HWm1IbuCXtEc$OpEh8c5b6eAkIuU6kN1iO4oXG0nZMB$riZSLGB742111368DIOVdmw4GSft6MdvBVq9WtFe2TvLpHnHoLuS1cDrT7nS8rZI2oaMA_pfVNG94$yvustuvy$39FMUeoz8LZn1GXp6Ql5SpCb0RtJmGlGnKtS1dEsU7nS8rYH0nZMA_qgYQJD83$ywvuvx_27DJRaju3FSft6MdvCWrBYwJj7Z0TxQwQxT0a9lM_dHyeL3nXI3rdQF4wnfYSNJGEDDEGIMQVahow3EOan0FVm2LfzJf1OnAb0SvNsMtPzX6iIwZCtXDvdL4qbNA$qgXPIC73$ywvuuwy$38EMUdny8LZo1IYq7Qk4Qn9YyNqHlEkFnJtQ$bBoR4kP5pWG0nZMA$qfWOHA50yv}
+{!40400|Att_clearTypeFonts: -1}
+
+Function Wishart( cv : Number[I,J,Run] ; n :positive ; I,J : Index ; ~
+singleSampleMethod : optional hidden scalar)
+Title: Wishart(cv,n,I,J)
+Description: Suppose you sample N samples from a Gaussian(0,cv,I,J) distribution, X[I,R].  (R is the index that indexes each sample, R:=1..N).  The Wishart distribution describes the distribution of sum( X * X[I=J], R ).  This matrix is dimensioned by I and J and is called the scatter matrix. ~
+~
+A sample drawn from the Wishart is therefore a sample scatter matrix.  If you divide that sample by (N-1), you have a sampled covariance matrix.  ~
+~
+If you compute a sample covariance matrix from data, and then want to use this in your model, if you just use it directly, you'll be ignoring sampling error.  That may be insignificant of N is large.  Otherwise, you may want to use:~
+  Wishart( SampleCV, N, I, J) / (N-1)~
+instead of just SampleCV in your model.   The extended variance will account for the uncertainty from the finite sample size that was used to obtain your sample CV.~
+~
+If you can express a prior probability on covariances in the form of an InvertedWishart distribution, then the posterior distribution, after having computed the sample covariance matrix (assumed to be drawn, by nature, from a Wishart), is also an InvertedWishart.
+Definition: var T := if i<j then 0 else if i=j ~
+             then sqrt(ChiSquared(n-i+1, singleSampleMethod:singleSampleMethod))~
+             else (normal(0,1, singleSampleMethod:singleSampleMethod));~
+var A := MatrixMultiply(T,I,J,Transpose(T,I,J),I,J);~
+var L := Decompose(A,I,J);~
+MatrixMultiply(MatrixMultiply(L,I,J,A,I,J),I,J,Transpose(L,I,J),I,J)
+NodeLocation: 128,224,1
+NodeSize: 100,16
+WindState: 2,183,11,538,656
+
+Function Invertedwishart(psi:Number[I,J,Run] ; n :positive ; I,J : Index ;~
+singleSampleMethod : optional hidden scalar)
+Title: Inverted Wishart(Psi,n,I,J)
+Description: The inverted Wishart distribution represents a distribution of covariance matrices.  Each sample from the InvertedWishart is a covariance matrix.  It is conjugate to a Wishart distribution, and therefore is sometimes used as a Bayesian prior distribution for covariance.  The parameter, Psi, must be a positive definite matrix.~
+~
+Suppose you represent the prior distribution of covariance using an inverted Wishart distribution: InvertedWishart(Psi,m).  You observe some data, X[I,R], where R:=1..N indexes each datapoint and I is the vector dimension, and compute A = Sum( X*X[I=J], R), where A is called the scatter matrix.  A is an observation that gives you information about the true covariance matrix, so can use this to obtain a Bayesian posterior distribution on the true covariance given by:~
+  InverseWishart( A+Psi, n+m ).~
+
+Definition: Invert( Wishart( Invert(Psi,I,J), n, I,J, singleSampleMethod:singleSampleMethod), I, J )
+NodeLocation: 352,224,1
+NodeSize: 108,16
+WindState: 2,102,90,553,530
+
+Function Regressiondist( Y : Numeric[I,Run] ; B : Numeric[I,K,Run] ; I,K : Index; C : optional Numeric[K,Run] ;~
+ S : optional Numeric[I,Run] ;~
+singleSampleMethod : optional hidden scalar )
+Title: RegressionDist(Y,B,I,K)
+Description: RegressionDist returns linear regression coefficients as a distribution.~
+~
+Suppose you have data where Y was produced as:~
+  Y = Sum( C*B, K ) + Normal(0,S)~
+~
+S is the measurement noise.  You have the data (B[I,K] and Y[I]).  You might or might not know the measurement noise S.  So you perform a linear regression to obtain an estimate of C.  Because your estimate is obtained from a finite amount of data, your estimate of C is itself uncertain.  This function returns the coefficients C as a distribution (i.e., in Sample mode, it returns a sampling of coefficients indexed by Run and K), reflecting the uncertainty in the estimation of these parameters.~
+~
+If you know the noise level S in advance, then you can use historical data as a starting point for building a predictive model of Y, as follows:~
+~
+{ Your model of the dependent variables: }~
+Variable Y := your historical dependent data, indexed by I~
+Variable B := your historical independent data, indexed by I,K~
+Variable X := { indexed by K.  Maybe others.  Possibly uncertain }~
+Variable S := { the known noise level }~
+Chance C := RegressionDist(Y,B,I,K)~
+Variable Predicted_Y := Sum(C*X,K) + Normal(0,S)~
+~
+If you don't know the noise level, then you need to estimate it. You'll need it for the normal term of Predicted_Y anyway, and you'll need to do a regression to find it.  So you can pass these optional parameters into RegressionDist.  The last three lines above become:~
+Variable E_C := Regression(Y,B,I,K)~
+Variable S := RegressionNoise( Y,B,I,K,E_C )~
+Chance C := RegressionDist(Y,B,I,K,E_C)~
+Variable Predicted_Y := Sum(C*X,K) + Normal(0,S)~
+~
+If you use RegressionNoise to compute S, you should use Mid(RegressionNoise(...)) for the S parameter.  However, when computing S for your prediction, don't RegressionNoise in context.  Better is if you don't know the measurement noise in advance, don't supply it as a parameter.
+Definition: if IsNotSpecified(C) Then C := Regression(Y,B,I,K);~
+If IsNotSpecified(S) Then S := Mid(RegressionNoise(Y,B,I,K,C))~
+                                 Else S:=Mean(S);~
+Index K2 := K;~
+var Linv := Decompose(Sum( B*B[K=K2]/S^2,I),K,K2);~
+var L := Invert(LInv,K,K2);~
+var Z := Normal(0,1,over:K2,~
+				singleSampleMethod:singleSampleMethod);~
+Sum( L*Z,K2 ) + C
+NodeLocation: 152,736,1
+NodeSize: 112,20
+WindState: 2,947,-10,561,882
+
+Function Dirichlet(alpha : Numeric[I,Run]; I:IndexType ;~
+Over : ... optional atomic ;~
+singleSampleMethod : optional hidden scalar)
+Title: Dirichlet ( a, i )
+Description: A Dirichlet distribution with parameters alpha_i>0~
+Each sample of a Dirichlet distribution produces a random vector whose elements sum to 1.  It is commonly used to represent second order probability information.~
+~
+The Dirichlet distribution has a density given by ~
+   k * Product( X^(alpha-1), I)~
+where k is a normalization factor equal to~
+  GammaFn( sum(alpha,I )) / Sum(GammaFn(alpha),I)~
+~
+The parameters, alpha, can be interpreted as observation counts.  The mean is given by the relative values of alpha (normalized to 1), but the variance narrows as the alphas get larger, just as your confidence in a distribution would narrow as you get more samples.~
+~
+The Dirichlet lends itself to easy Bayesian updating.  If you have a prior of alpha0, and you observe N
+Definition: var a:=Gamma(alpha,singleSampleMethod:singleSampleMethod);~
+a/sum(a,I)
+NodeLocation: 296,120,1
+NodeSize: 64,16
+WindState: 2,26,18,624,485
+
+Function Binormal(MeanVec :numeric[I,Run]; Sdeviations : positive[I,Run]; I:IndexType; correlationCoef : numeric[Run];~
+Over : ... optional atomic ;~
+singleSampleMethod : optional hidden scalar)
+Title: BiNormal (m, s, i, c )
+Description: A 2-D Normal (or Bi-variate Gaussian) distribution with the indicated individual standard deviations (>0) and the indicated correlation coefficient.  The index, I, must have exactly 2 elements, Sdeviations must be indexed by I.
+Definition: if size(I)<>2 then ~
+   Error("Index to BiNormal must have 2 elements")~
+else begin~
+   var s := product(Sdeviations,I) * correlationCoef;~
+   Index J:=CopyIndex(I);~
+   Gaussian( meanVec, If I<>J Then s else Sdeviations^2, I,J,~
+                        singleSampleMethod: singleSampleMethod )~
+end
+NodeLocation: 288,72,1
+NodeSize: 88,16
+WindState: 2,2,24,525,540
+
+Function Multinomial(N:NonNegative ; theta:NonNegative  ; I : IndexType;~
+Over : ... optional atomic ;~
+singleSampleMethod : hidden optional scalar )
+Title: Multinomial (n, theta, i )
+Description: Returns the Multinomial Distribution.~
+~
+The multinomial distribution is a generalization of the Binomial distribution to N possible outcomes.  For example, if you were to roll a fair die N times, an outcome would be the number of times each of the six numbers appears.  Theta would be the probability of each outcome, where sum(theta,I)=1, and index I is the list of possible outcome.  If theta doesn't sum to 1, it is normalized.~
+~
+Each sample is a vector indexed by I indicating the number of times the corresponding outcome (die number) occurred during that sample point.  Each sample will have the property that sum( result, I ) = N.
+Definition: var z := n;~
+var k := size(I);~
+~
+var j:=cumulate(1,I) in I do begin~
+  Index I2 := j..k;~
+  var theta2 := Slice(theta,I,I2); /* unnormalized sub-process */~
+  var p := theta2/sum(theta2, I2);~
+  p := if IsNan(p) then 0 else p;~
+  var xj := Binomial(z,p[I2=j],~
+                              singleSampleMethod:singleSampleMethod);~
+  z := z - xj;~
+  xj~
+end~
+
+NodeLocation: 120,120,1
+NodeSize: 96,16
+WindState: 2,75,167,476,522
+
+Function Correlate_dists(dists : Context[I,RunIndex] ; rankcorrs : numeric array[I,J] ; ~
+  I,J : IndexType;~
+  RunIndex : optional Index = Run )
+Title: Correlate Dists (d, rc, i, j )
+Description: Reorders the samples in dists so as to match the desired rank correlations between distributions as closely as possible.  RankCorrs must be positive definite, and the diagonal should contain all ones.~
+~
+The result will be distributions having the same margins as the original input, but with rank correlations close to those of the rankcorrs matrix.
+Definition: if not IsSampleEvalMode and Handle(RunIndex)=Handle(Run) Then~
+   dists  {Mid mode}~
+Else begin~
+  var corr := if @I=@J then 1 else 2 * Sin(30 * rankCorrs);~
+  var u := if Handle(RunIndex)=Handle(run) ~
+               Then Sample(Gaussian(0,corr,I,J))~
+               Else Random(Gaussian(0,corr ,I,J),Over:RunIndex);~
+  var dsort := sortIndex(dists,RunIndex,position:true);~
+  var urank := Rank(u,RunIndex,type:null);~
+  dists[@RunIndex=dsort[@RunIndex=urank]]~
+end
+NodeLocation: 136,400,1
+NodeSize: 104,16
+WindState: 2,693,59,721,615
+
+Function Correlate_with( S, ref : Context[RunIndex] ; rc : scalar ; ~
+  RunIndex : optional Index = Run )
+Title: Correlate With (s, ref, rc )
+Description: Reorders the samples of S so that the result is correlated with the reference sample with a rank correlation close to rankcorr.  ~
+~
+Example: To generate a logNormal distribution that is highly correlated with Ch1, use, e.g.,:  Correlate_With( LogNormal(2,3), Ch1, 0.8 )~
+~
+Note: This achieves a given unweighted rank correlation.  If you have a non-default SampleWeighting of points, the weighted rank correlaton may differ.
+Definition: if IsSampleEvalMode or Handle(runIndex)<>Handle(Run) Then begin~
+  Index q := 1..2;~
+  var corr := 2 * sin( 30 * rc );~
+  var u := If Handle(RunIndex)=Handle(Run) ~
+               Then binormal( 0, 1, q, corr )~
+                Else Random(binormal(0,1,q, corr),Over:RunIndex);~
+  var rrank := Rank(ref,RunIndex,type:Null);~
+  var u1sort := sortIndex(u[q=1],RunIndex,position:true);~
+  var u2rank := Rank(u[q=2],RunIndex,type:Null);~
+  var ssort := sortIndex(S,RunIndex,position:true);~
+  S[@RunIndex=ssort[@RunIndex=u2rank[@RunIndex=~
+                                                            u1sort[@RunIndex=rrank]]]]~
+end ~
+else {mid mode}~
+  S
+NodeLocation: 144,312,1
+NodeSize: 112,16
+WindState: 2,816,36,715,607
+
+Function Uniformspherical(I : IndexType ; R : optional Numeric[I,Run] ;~
+Over : ... optional atomic ;~
+singleSampleMethod : optional hidden scalar )
+Title: Uniform Spherical (i, r )
+Description: Generates points uniformly on a sphere (or circle or hypersphere).~
+Each sample generated is indexed by I -- so if I has 3 elements, the points will lie on a sphere.~
+~
+The mid value is a bit strange here since there isn't really a median that lies on the sphere.  Obviously the center of the sphere is the middle value, but that isn't in the allowable range.  So, an arbitrary point on the sphere is used.
+Definition: if IsNotSpecified(R) then R:=1;~
+var u := Normal(0,1,over:I,~
+                          singleSampleMethod:singleSampleMethod); ~
+var d := sqrt( sum(u^2,I) );~
+ifall d=0 and @I then R/sqrt(size(I)) else r*u/d
+NodeLocation: 352,168,1
+NodeSize: 96,16
+WindState: 2,151,227,476,424
+
+Function Multiuniform(corr : Numeric[I,J,Run] ; I,J : IndexType ; lb,ub : optional Numeric[I,J,Run] ;~
+Over : ... optional atomic ;~
+singleSampleMethod : hidden optional scalar )
+Title: MultiUniform ( c, i, j, lb, ub )
+Description: The multi-variate uniform distribution.~
+Generates vector samples (indexed by I) such that each component has a uniform marginal distribution, and such that each component have the pair-wise correlations given by corr.  Indexes I and J must have the same number of elements, corr needs to be symmetric and must obey a certain semidefinite condition (namely that the transformed matrix [ 2*sin(30*cov) ] is positive semidefinite.  In most cases, this roughly the same as corr being, or not being, positive semidefinite).  Lb and ub can be used to specify upper and lower bounds, either for all components, or individually if these bounds are indexed by I.  If lb & ub are omitted, each component will have marginal Uniform(0,1).~
+~
+The correlation specified in corr is true sample correlation - not rank correlation.   ~
+~
+The transformation here is based on:~
+* Falk, M. (1999), "A simple approach to the generation of uniformly distributed random variables with prescribed correlations," Comm. in Stats - Simulation and Computation 28: 785-791.
+Definition: if IsNotSpecified(lb) then lb:=0;~
+if IsNotSpecified(ub) then ub := 1;~
+var R := if I=J then 1 else 2*sin(30*corr);~
+var g := Gaussian(0,R,I,J,~
+                              singleSampleMethod:singleSampleMethod);~
+Cumnormal( g ) * (ub-lb) + lb
+NodeLocation: 136,168,1
+NodeSize: 112,16
+WindState: 2,67,106,608,611
+
+Module Depricated_multi_var
+Title: Depricated multi-variate stuff
+Description: Functions found in this module are here for legacy reasons.  They existed in older versions of the Multivariate library, but have been become obsolete for whatever reason.
+Author: Lonnie
+Date: Mon, Apr 30, 2007 3:49 PM
+DefaultSize: 48,24
+NodeLocation: 80,944,1
+NodeSize: 56,32
+
+Function Samplecovariance(X ; I : Index ; J : optional Index ; R : Index)
+Title: Sample Covariance
+Description: This function is obsolete.  In Analytica 4.0, the builtin function Variance can be used to compute a covariance matrix.  The equivalent of this function would be:  Variance( X, R, CoVarDim:I, CoVarDim2:J ).~
+~
+Returns a covariance matrix based on the sampled data, X, indexed by I and R.  (I is the dimensionality of X, R corresponds to the samples).  The result will be indexed by I and J -- supply J to be the same length as I.~
+~
+Note that the mean is simply Average(X,R), and doen't warrant a separate function.
+Definition: var I2 := if IsNotSpecified(J) ~
+              Then (Index K/((identifier of I)&"2") := I do VarTerm(K)) ~
+              Else VarTerm(J);~
+var Z:=X-Average(X,R);~
+var Zt := Z[@I=@I2];~
+Sum(Z*Zt,R)/(size(R)-1)
+NodeLocation: 80,48,1
+NodeSize: 48,24
+WindState: 2,222,299,476,297
+
+Function Samplecorrelation(X : array[I,R] ; I,J,R : IndexType)
+Title: sample correlation
+Description: This function is obsolete.  A covariance matrix can be computed in Analytica 4.0+ using the built-in function Correlation.  The equivalent of this function is Correlation(X,X[@I=@J],R).~
+~
+Returns a correlation matrix based on data in X, where each data point is a vector indexed by I, and the entries in the correlation matrix are the pair-wise correlations of the columns of data.  A second index, J, of size identical to I, is required in order to index the 2-dimensional result.
+Definition: var z:=x-average(x,R);~
+var zt := slice(z,I,cumulate(1,J));~
+sum(z*zt,R) / sqrt(sum(z^2,R) * sum(zt^2,R))~
+
+NodeLocation: 208,48,1
+NodeSize: 48,24
+WindState: 2,70,24,523,377
+
+Close Depricated_multi_var
+
+Text Multvar_te1
+Description: Parametric Multivariate  Distributions
+NodeLocation: 220,42,-1
+NodeSize: 196,14
+
+Text Multvar_te2
+Description: Creating an array of mutually correlated distributions:
+NodeLocation: 232,368,-1
+NodeSize: 200,16
+
+Text Multvar_te3
+Description: Creating a single univariate  distribution correlated with another existing dist:
+NodeLocation: 314,278,-1
+NodeSize: 286,10
+
+Function Normal_correl(m, s, r, y: Numeric ;~
+over : optional atomic ;~
+singleSampleMethod : optional hidden scalar )
+Title: Normal_correl(m, s, r, y)
+Description: Generates a normal distribution with mean m, standard deviation s, and correlation r with normally distributed value y.  In a deterministic context, it will return m.~
+~
+If y is not normally distributed, the result will also not be normal, and the correlation will be approximate. It generalizes appropriately if any of the parameters are arrays:The result array will have the union of  the indexes of the parameters.
+Definition: IF r<-1 OR r>1 THEN Error('Correlation parameter r in function Normal_correl(m, s, r, y) is outside the expected range [-1, 1].');~
+IFOnly IsSampleEvalMode ~
+THEN m + s * (Sqrt(1-r^2) ~
+                        * Normal(Sameindexes( 0, m ), Sameindexes( 1, s ),~
+                                       singleSampleMethod:singleSampleMethod )  ~
+                     +  r * (y - Mean(y))/Sdeviation(y))~
+ELSE m
+NodeLocation: 368,312,1
+NodeSize: 108,16
+WindState: 2,102,90,503,416
+
+Module Multivariate_interna
+Title: Multivariate Internal Functions
+Author: Lonnie
+Date: Tue, May 01, 2007 9:29 PM
+DefaultSize: 48,24
+NodeLocation: 200,944,1
+NodeSize: 56,32
+DiagState: 1,605,145,518,268,17
+
+Function Sameindexes(x, y)
+Title: SameIndexes(x,y)
+Description: Returns an array with the same indexes as y, and value x in each cell.
+Definition: IF y=y THEN x ELSE x
+NodeLocation: 120,64,1
+NodeSize: 80,20
+
+Function Uniquerank(X : Array[I]; I : Index)
+Title: UniqueRank
+Description: Returns the Rank of X along I, but such that the rank assigned is unique for every element.  Thus, when there are ties, instead of getting the same rank, as would happen with the Rank(X,I) function, the ranks will be assigned arbitrarily.   Consider:~
+   [ 3, 1, 3, 2, 3, 2, 1 ]~
+Ranks become:~
+   [5,1,6,3,7,4,2 ]
+Definition: Rank(X,I,type:Null)
+NodeLocation: 272,64,1
+NodeSize: 56,20
+WindState: 2,477,347,537,379
+
+Close Multivariate_interna
+
+Function Multinormal(m, s: Numeric; cm: ArrayType[i, j,Run]; i , j: IndexType ;~
+Over : ... optional atomic ;~
+singleSampleMethod : optional hidden scalar )
+Title: Multinormal(m,s,c,i,j)
+Description: A multi-variate normal (or Gaussian) distribution with mean  m, standard deviation s, and correlation matrix cm.  m and s may be scalar or indexed by i. cm must be symmetric, positive-definite, and indexed by i & j, which must be the same length.~
+~
+Multinormal uses a correlation matrix.  Compare with Gaussian, which also defines a multi-variate normal but which uses a covariance matrix.
+Definition: Gaussian(m,cm*(s*s[@i=@j]),i,j,over,singleSampleMethod)
+NodeLocation: 472,72,1
+NodeSize: 84,16
+WindState: 2,391,248,512,343
+
+Text Multvar_te4
+Description: Reshaped distributions:
+NodeLocation: 136,448,-1
+NodeSize: 100,16
+
+Function Dist_reshape(x : Numeric[R] ; newdist : Numeric[R] ; ~
+R : optional Index = Run )
+Title: Dist_reshape(x, newdist)
+Description: Reshapes the probability distribution of uncertain quantity x so that it has the same marginal probability distribution (i.e, same set of sample values) as newdist, but retains the same ranks as x.  Thus:~
+     Rank(Sample(x), Run) ~
+           = Rank(Sample(Reshape_dist(x, y)), Run)~
+In a Mid context, it simply returns the mid value of newdist, with any indexes of x.~
+~
+The result retains any rank correlations that x may have with other predecessor variables.  So, the rank-order correlation between a third variable z and x will be the same as the rank-order correlation between z and a reshaped version of x, i.e.~
+     RankCorrel(x, z) = RankCorrel(Reshape_Dist(x, y), z)~
+~
+The operation may optionally be applied along an index other than Run.
+Definition: IFOnly IsSampleEvalMode or Handle(R)<>Handle(Run) THEN BEGIN~
+     VAR dsort := SortIndex(newdist, R, position:true);~
+     VAR xranks := Rank(x, R, type:Null);~
+     newdist[@R = dsort[@R=xranks]]~
+     END~
+ELSE newdist * (x=x)
+NodeLocation: 152,472,1
+NodeSize: 116,16
+WindState: 2,102,90,836,582
+
+Text Multvar_te5
+Description: Arrays with serial correlation
+NodeLocation: 208,532,-1
+NodeSize: 168,12
+
+Function Normal_serial_correl(m, s, r: Numeric; i: IndexType ;~
+over : ... optional atomic;~
+singleSampleMethod : optional hidden scalar )
+Title: Normal_serial_correl(m,s,r,i)
+Description: Generates an array over index i of normal distributions with mean m, standard deviation s, and correlation r between successive values  over index i.  You can give each distribution a different mean and/or standard deviation if m and/or s are arrays indexed by i. If r is indexed by i, r[i=k] specifies the correlation between result[i=k] and result[i=k-1].  (Then the first correlation, slice(r, i, 1)  is ignored.)
+Definition: Var x := Normal(0, 1,singleSampleMethod:singleSampleMethod);~
+(FOR j := i DO  ~
+       x := Normal_correl( 0, 1, r[i = j],x,~
+                                       singleSampleMethod:singleSampleMethod ) ) ~
+* s + m
+NodeLocation: 160,560,1
+NodeSize: 120,16
+WindState: 2,353,325,540,383
+
+Function Normal_additive_gro(x, m, s, r: Numeric; i: IndexType ;~
+over : ... optional atomic ;~
+singleSampleMethod : optional hidden scalar )
+Title: Normal_additive_gro(x,m,s,r,i)
+Description: Adds a normally distributed percent growth g with mean m and standard deviation s to x for each value of index i. The growth g for each i has serial correlation r with g for i-1.
+Definition: x *( 1 + Cumulate(Normal_serial_correl(m, s, r, i,~
+                            singleSampleMethod:singleSampleMethod), i))
+NodeLocation: 159,600,1
+NodeSize: 119,16
+WindState: 2,102,90,519,306
+
+Function Normal_compound_gro(x, m, s, r: Numeric; t: IndexType ;~
+over : ... optional atomic;~
+singleSampleMethod : optional hidden scalar )
+Title: Normal_compound_gro(x,m,s,r,t)
+Description: An array of values over time index t, starting from with value x, and with compound growth applied for each time interval, with normal uncertainty with mean m and standard deviation s  The growth g for each i has correlation r with g for i-1.
+Definition: x * Cumproduct(IF t = Slice(t, 1) THEN 1 ELSE Normal_serial_correl(m, s, r, t, singleSampleMethod:singleSampleMethod ) + 1, t)
+NodeLocation: 160,640,1
+NodeSize: 128,16
+WindState: 2,102,90,529,366
+
+Function Dist_serial_correl(x; r; i: IndexType ;~
+over : ... optional atomic;~
+singleSampleMethod : optional hidden scalar )
+Title: Dist_serial_correl(x,r,i)
+Description: Generates an array y over index i where each y[i] has a marginal  distribution identical to x, and serial rank correlation of r with y[i-1].  If x  is indexed by i,  each y[i] has the same marginal distribution as x[i], but with samples reordered to have the specified rank correlation r between successive values.  If r is indexed by i, r[i=k] specifies the rank correlation between y[i=k] and y[i=k-1].  Then the first correlation, r[i=1], is ignored.~
+~
+In Mid context, it returns Mid(x).~
+~
+Note: The result retains no probabilistic dependence on x.
+Definition: Dist_reshape(Normal_serial_correl( 0, 1, r, i, singleSampleMethod:singleSampleMethod ), x)
+NodeLocation: 440,560,1
+NodeSize: 120,16
+WindState: 2,302,78,477,447
+
+Function Dist_additive_growth(x, g, r: Numeric; i: IndexType;~
+over : ... optional atomic;~
+singleSampleMethod : optional hidden scalar )
+Title: Dist_additive_growth(x,g,r,i)
+Description: Generates an array of values over index i, with the first equal to x, and successive values adding an uncertain growth with probability distribution g, and serial correlation r between growth[i = k] and growth[i=k-1].  x, g, and r each may be indexed by i if you want them to vary over i.
+Definition: x + Cumulate(Dist_serial_correl( g, r, i, singleSampleMethod : singleSampleMethod), i)
+NodeLocation: 439,600,1
+NodeSize: 119,16
+WindState: 2,102,90,506,300
+
+Function Dist_compound_growth(x, g, r; i: IndexType ;~
+over : ... optional atomic ;~
+singleSampleMethod : optional hidden scalar )
+Title: Dist_compound_growth(x,g,r,i)
+Description: Starts with x and applies a compound growth g for each value of index i. The growth g for each i has correlation r with g for i-1.
+Definition: x * Cumproduct(~
+           IF i = Slice(i, 1) THEN 1 ~
+           ELSE (Dist_serial_correl( g, r, i,   ~
+                                    singleSampleMethod:singleSampleMethod ) + 1)~
+, i)
+NodeLocation: 439,640,1
+NodeSize: 119,16
+WindState: 2,102,90,489,307
+
+Text Multvar_te6
+Description: Distributions on Linear Regression coefficients
+NodeLocation: 296,700,-1
+NodeSize: 256,12
+
+Function Regressionnoise( Y : Numeric[I,Run] ; B : Numeric[I,K,Run] ; I,K : Index; C : optional Numeric[K,Run] )
+Title: RegressionNoise(Y,B,I,K,C)
+Description: When you have data, Y[I] and B[I,K], generated from an underlying model with unknown coefficients C[k] and S of the form:~
+~
+Y = Sum( C*B, I) + Normal(0,S)~
+~
+This function computes an estimate for S.  ~
+~
+When using in conjunction with RegressionDist, it is most efficient to provide the optional parameter C to both routines, where C is the expected value of the regression coefficients, obtained from calling Regression(Y,B,I,K).  Doing so avoids an unnecessary call to the builtin Regression function.
+Definition: if IsNotSpecified(C) Then C := Regression(Y,B,I,K);~
+Var resid := Y - Sum(C*B,K);~
+sqrt( Sum(resid^2,I) / (size(I)-size(K)) );~
+
+NodeLocation: 384,736,1
+NodeSize: 112,20
+WindState: 2,332,211,498,542
+
+Function Regressionfitprob( Y : Numeric[I,Run] ; B : Numeric[I,K,Run] ; I,K : Index; C : optional Numeric[K,Run] ; ~
+S :  optional Numeric[I,Run] )
+Title: RegressionFitProb(Y,B,I,K,C)
+Description: Once you've obtained regression coefficients C (indexed by K) by calling the Regression function, this function returns the probability that a fit this poor would occur by chance, given the assumption that the data was generated by a process of the form:~
+~
+ Y = Sum( C*B,K) + Normal(0,S)~
+~
+If this result is very close to zero, it probably indicates that the assumption of linearity is bad.  If it is very close to one, then it validates the assumption of linearity.~
+~
+This is not a distribution function - it does not return a sample when evaluated in Sample mode.  However, it does complement the multivariate RegressionDist function also included in this library.~
+~
+To use, first call the Regression function, then you must either know the measurement knows a priori, or obtain it using the RegressionNoise function.~
+~
+Var E_C := Regression(Y,B,I,K);~
+Var S := RegressionNoise(Y,B,I,K,C);~
+Var PrThisPoor := RegressionFitProb(Y,B,I,K,E_C,S)
+Definition: if IsNotSpecified(C) then C:=Regression(Y,B,I,K);~
+if IsNotSpecified(S) then S:=RegressionNoise(Y,B,I,K);~
+var resid := Y - sum(C*B,K);~
+var n := size(I);~
+var chi2 := sum( resid^2 / Mean(S)^2, I);~
+GammaI( n/2 - 1, chi2/2 )
+NodeLocation: 152,800,1
+NodeSize: 112,20
+WindState: 2,287,69,586,548
+
+Text Multivar_Te24
+NodeLocation: 379,256,-1
+NodeSize: 380,1
+NodeInfo: 1,0,0,0,1,1,0,,0,,0
+NodeColor: 0,0,0
+
+Text Multivar_Te38
+NodeLocation: 376,341,-1
+NodeSize: 380,1
+NodeInfo: 1,0,0,0,1,1,0,,0,,0
+NodeColor: 0,0,0
+
+Text Multivar_Te39
+NodeLocation: 380,424,-1
+NodeSize: 380,1
+NodeInfo: 1,0,0,0,1,1,0,,0,,0
+WindState: 2,102,83,464,224
+NodeColor: 0,0,0
+
+Text Multivar_Te40
+NodeLocation: 380,505,-1
+NodeSize: 380,1
+NodeInfo: 1,0,0,0,1,1,0,,0,,0
+NodeColor: 0,0,0
+
+Text Multvar_te173623456
+Description: Parametric Multivariate  Distributions
+NodeLocation: 220,42,-1
+NodeSize: 196,14
+
+Text Multvar_te217657837
+Description: Creating an array of mutually correlated distributions:
+NodeLocation: 232,368,-1
+NodeSize: 200,16
+
+Text Multvar_te388723474
+Description: Creating a single univariate  distribution correlated with another existing dist:
+NodeLocation: 314,278,-1
+NodeSize: 286,10
+
+Text Multvar_te4873647383
+Description: Reshaped distributions:
+NodeLocation: 136,448,-1
+NodeSize: 100,16
+
+Text Multvar_te5837466373
+Description: Arrays with serial correlation
+NodeLocation: 208,532,-1
+NodeSize: 168,12
+
+Text Multvar_te6873647383
+Description: Distributions on Linear Regression coefficients
+NodeLocation: 296,700,-1
+NodeSize: 256,12
+
+Text Multvar_Te1736453672
+NodeLocation: 379,256,-1
+NodeSize: 380,1
+NodeInfo: 1,0,0,0,1,1,0,,0,,0
+NodeColor: 0,0,0
+
+Text Multvar_Te2837465637
+NodeLocation: 376,341,-1
+NodeSize: 380,1
+NodeInfo: 1,0,0,0,1,1,0,,0,,0
+NodeColor: 0,0,0
+
+Text Multvar_Te3338748393
+NodeLocation: 380,424,-1
+NodeSize: 380,1
+NodeInfo: 1,0,0,0,1,1,0,,0,,0
+NodeColor: 0,0,0
+
+Text Multvar_Te4928344443
+NodeLocation: 380,505,-1
+NodeSize: 380,1
+NodeInfo: 1,0,0,0,1,1,0,,0,,0
+NodeColor: 0,0,0
+
+Text Multvar_Te5273647710
+NodeLocation: 380,673,-1
+NodeSize: 380,1
+NodeInfo: 1,0,0,0,1,1,0,,0,,0
+NodeColor: 0,0,0
+
+Alias Gaussian1494358961
+Title: Gaussian(m, cv, i, j)
+NodeLocation: 104,72,1
+NodeSize: 80,16
+NodeInfo: 1,1,1,1,1,1,0,0,0,0,,0,1,0
+NodeColor: 58978,52427,65535
+Original: Gaussian
+
+Close Multivariate_distrib
+
+{!40404|FreePassObjectCount NPmhPgIiwJTifbNzs$VnBOQJF8sjqIYw55ysjPDbAIWhiWb2aEpPaozB4wYO2Vnw6FDKhPvW$FHQMQFpYLOo_HSO6xZJq4Vz$E0ujODQi6RnigbZCoAm9QSGBvlccDcu3$_zhBmVNs7HK8$sSqHt1OIIF2eVn5NSknkrNxToKdqA4BrbIrBofttppkOsfKFXbbfeMui4fn$AB$4QyMlxEMYYYb4n7aqyLsyqcUF_sDXbcaRQfFdxJceUcT2ZKScs36yvZLAFhv3HQI_Y3DQ$Lj5UvKmDhAfAhEnMxX8mP2jO5oWG0mYL9_pgXPIC730zyxyz$27CHOWfoy7KXl_DUl2Lg$Li4TsHj9c4a4b7fDoN_bDsXCtaI1mWI4thWMD5ztnjfcaZYZbdhlqx19ISdo$CQgwBTl3Oj4RqDd2UxOtMtOwT1cCpQ3iN2kSAvePBznbQG7$uojeaYWVVWYbfjpw19ITep1ESiyDWp7So9XvJj8a2V_U$X4dBnN_cFvaFyfN7teQD1shYPHA50xusrrrsuy05BH}
+Library Logarithmic
+Title: Continuous Distributions
+Author: nieman
+Date: Thu, Jun 10, 1999 10:01 AM
+SaveAuthor: Lonnie
+SaveDate: Fri, Sep 7, 2012 2:08 PM
+DefaultSize: 48,24
+NodeLocation: 280,144,1
+NodeSize: 64,24
+NodeInfo: 1,1,1,1,1,1,0,0,0,0,,,,0
+DiagState: 2,343,161,850,277,17
+FontStyle: Arial, 13
+Att_PreLoadScript: {!40404|FreePassObjectCount NPmhPgIiwJTifbNzs$VnBOQJF8sjqIYw55ysjPDbAIWhiWb2aEpPaozB4wYO2Vnw6FDKhPvW$FHQMQFpYLOo_HSO6xZJq4Vz$E0ujODQi6RnigbZCoAm9QSGBvlccDcu3$_zhBmVNs7HK8$sSqHt1OIIF2eVn5NSknkrNxToKdqA4BrbIrBofttppkOsfKFXbbfeMui4fn$AB$4QyMlxEMYYYb4n7aqyLsyqcUF_sDXbcaRQfFdxJceUcT2ZKScs36yvZLAFhv3HQI_Y3DQ$Lj5UvKmDhAfAhEnMxX8mP2jO5oWG0mYL9_pgXPIC730zyxyz$27CHOWfoy7KXl_DUl2Lg$Li4TsHj9c4a4b7fDoN_bDsXCtaI1mWI4thWMD5ztnjfcaZYZbdhlqx19ISdo$CQgwBTl3Oj4RqDd2UxOtMtOwT1cCpQ3iN2kSAvePBznbQG7$uojeaYWVVWYbfjpw19ITep1ESiyDWp7So9XvJj8a2V_U$X4dBnN_cFvaFyfN7teQD1shYPHA50xusrrrsuy05BH}
+{!40400|Att_clearTypeFonts: -1}
+
+Function Loguniform(min,max:Positive)
+Title: LogUniform (min,max)
+Description: This function calculates a log uniform distribution. The log uniform distribution results when the logarithm of the random variable is described by a uniform distribution.  That is, if X is log uniformly distributed, then Y = ln X is uniformly distributed.  Inputs are the minimum and maximum values for the random variable and must be positive and non-zero.
+Definition: if (min>0 and max>0) then exp(uniform(ln(min),ln(max))) else 'input values must be > 0'
+NodeLocation: 440,56,1
+NodeSize: 56,24
+WindState: 1,12,200
+
+Chance Loguniform_example
+Title: LogUniform Example
+Description: Example of loguniform function with min=5 and max =30.
+Definition: loguniform(5,30)
+NodeLocation: 440,120,1
+NodeSize: 48,24
+WindState: 1,124,223
+ValueState: 1,104,114,416,303,1,PDFP
+GraphSetup: Graphtool:0~
+Distresol:10~
+Diststeps:1~
+Cdfresol:5~
+Cdfsteps:1~
+Symbolsize:6~
+Baroverlap:0~
+Linestyle:10~
+Frame:1~
+Grid:1~
+Ticks:1~
+Mesh:1~
+Scales:1~
+Rotation:45~
+Tilt:0~
+Depth:70~
+Frameauto:1~
+Showkey:1~
+Xminimum:0~
+Xmaximum:50~
+Yminimum:0~
+Ymaximum:4u~
+Zminimum:1~
+Zmaximum:1~
+Xintervals:0~
+Yintervals:0~
+Includexzero:0~
+Includeyzero:0~
+Includezzero:0~
+Statsselect:[1, 1, 1, 1, 1, 0, 0, 0]~
+Probindex:[5%, 25%, 50%, 75%, 95%]~
+
+FontStyle: Arial, 6
+
+Variable Test_for_log_uniform
+Title: Test for Log Uniformity
+Description: Takes the ln of the Log Uniform example to show that it is indeed a uniform distribution.
+Definition: ln(Loguniform_example)
+NodeLocation: 440,184,1
+NodeSize: 48,24
+ValueState: 1,216,226,416,303,1,PDFP
+
+Function Logtriangular(min,mode,max:Positive)
+Title: LogTriangular (min,mode,max)
+Description: This function calculates a log triangular distribution. The log triangular distribution results when the logarithm of the random variable is described by a triangular distribution.  That is, if X is log triangularly distributed, then Y = ln X is triangularly distributed.  Inputs are the minimum, mode, and maximum values for the random variable and must be positive and non-zero.
+Definition: exp(triangular(ln(min),ln(mode),ln(max))) {input values must be > 0}
+NodeLocation: 320,56,1
+NodeSize: 64,24
+
+Chance Logtriangular_exampl
+Title: LogTriangular Example
+Description: Example of logtriangular function with min=5, mode=15 and max =30.
+Definition: Logtriangular(5,15,30)
+NodeLocation: 320,120,1
+NodeSize: 48,24
+ValueState: 1,104,114,416,303,1,PDFP
+GraphSetup: Graphtool:0~
+Distresol:10~
+Diststeps:1~
+Cdfresol:5~
+Cdfsteps:1~
+Symbolsize:6~
+Baroverlap:0~
+Linestyle:10~
+Frame:1~
+Grid:1~
+Ticks:1~
+Mesh:1~
+Scales:1~
+Rotation:45~
+Tilt:0~
+Depth:70~
+Frameauto:1~
+Showkey:1~
+Xminimum:0~
+Xmaximum:50~
+Yminimum:0~
+Ymaximum:4u~
+Zminimum:1~
+Zmaximum:1~
+Xintervals:0~
+Yintervals:0~
+Includexzero:0~
+Includeyzero:0~
+Includezzero:0~
+Statsselect:[1, 1, 1, 1, 1, 0, 0, 0]~
+Probindex:[5%, 25%, 50%, 75%, 95%]~
+
+FontStyle: Arial, 6
+
+Variable Test_for_log_triangu
+Title: Test for Log Triangularity
+Description: Takes the ln of the Log Triangular example to show that it is indeed a triangular distribution.
+Definition: Ln(Logtriangular_exampl)
+NodeLocation: 320,184,1
+NodeSize: 48,24
+ValueState: 1,216,226,416,303,1,PDFP
+
+Function Exponential(lambda:Positive)
+Title: Exponential~
+(lambda)
+Description: The exponential is the distribution of times between successive events that occur at random with an average of lambda events per unit time.  Lambda must be positive.
+Definition: -1/lambda*ln(uniform(1f,1)) {input values must be > 0}
+NodeLocation: 88,56,1
+NodeSize: 52,24
+WindState: 1,82,296
+
+Chance Exponential_example
+Title: Exponential Example
+Description: Example of exponential function with lambda=3.
+Definition: Exponential(3)
+NodeLocation: 88,120,1
+NodeSize: 48,24
+ValueState: 1,21,201,416,303,0,PDFP
+
+Function Weibull(c,k:positive)
+Title: Weibull ~
+(c,k)
+Description: The Weibull distribution describes data resulting from life and fatigue studies.  Both c, the scale, and k, the shape, must be >0.~
+c*(-ln(uniform(1f,1))^(1/k))  {c and k must be > 0}
+Definition: c*((-ln(uniform(1f,1)))^(1/k))  {c and k must be > 0}
+NodeLocation: 552,56,1
+NodeSize: 52,24
+WindState: 2,77,500,800,336
+
+Chance Weibull_example
+Title: Weibull Example
+Description: Example of the Weibull distribution, with  c = 3,  k = 2.
+Definition: Weibull(3,2)
+NodeLocation: 552,120,1
+NodeSize: 48,24
+ValueState: 2,120,87,416,303,0,PDFP,0
+
+Module Logistic1
+Title: Logistic~
+Example
+Author: nieman
+Date: Fri, Jun 18, 1999 8:05 AM
+DefaultSize: 48,24
+NodeLocation: 200,120,1
+NodeSize: 48,24
+DiagState: 2,65,68,273,204,17
+
+Chance Logistic_example
+Title: Logistic Example
+Description: Example of the logistic distribution, with ~
+ mu    = 8~
+ alpha = 1.1
+Definition: Logistic(8,1.1)
+NodeLocation: 104,64,0
+NodeSize: 44,20
+ValueState: 1,56,66,416,303,1,PDFP
+
+Module Mechanisms
+Title: Function Mechanisms
+Author: nieman
+Date: Thu, Jul 01, 1999 12:31 PM
+DefaultSize: 48,24
+NodeLocation: 104,144,1
+NodeSize: 56,24
+DiagState: 2,112,34,824,479,17
+
+Function Xrange(a,b)
+Title: XRange
+Description: XRange creates a sequence of numbers from a to b and makes this sequence indexed by DummyX so that it can be used in the definitions of functions.
+Definition: Array(Dummyx, Sequence( a, b, (b-a)/Sampleres))
+NodeLocation: 96,40,0
+NodeSize: 44,20
+WindState: 1,70,85
+
+Index Dummyx
+Title: DummyX
+Description: DummyX is a placeholder index that is used to associate X and Y Pdf values.
+Definition: Sequence(0,Sampleres )
+NodeLocation: 264,112,0
+NodeSize: 44,20
+
+Constant Epsilon
+Title: epsilon
+Description: Determines the cutoffs of the tails.  The distributions are cutoff at the x-values where the CDF is epsilon and 1-epsilon.~
+~
+Exponential, Logistic, and Weibull use this constant.
+Definition: 0.001
+NodeLocation: 208,40,0
+NodeSize: 44,20
+NodeInfo: 1,1,1,1,1,1,0
+
+Function Logistic_pdf(mu,alpha,x)
+Title: Logistic_Pdf~
+( mu, alpha, x )
+Description: mu and alpha are the mean and scale of the distribution
+Definition: Using t:=exp(-(x-mu)/alpha)~
+Do t/(alpha*(1+t)^2)
+NodeLocation: 96,40,0
+NodeSize: 64,20
+
+Constant Sampleres
+Title: Resolution
+Description: This is the number of data points needed for accurate interpolation of Probability Density Function curves used in generating the distribution functions in this library.~
+~
+Increase it for greater accuracy, or reduce it for greater speed.
+Definition: 300
+NodeLocation: 96,104,1
+NodeSize: 48,24
+
+Close Mechanisms
+
+Close Logistic1
+
+Function Logistic(mu,alpha)
+Title: Logistic~
+(mu, alpha)
+Description: The Logistic distribution is used to describe growth.~
+~
+mu is the mean~
+alpha is the scale, and must be > 0
+Definition: Using xp := XRange( mu-alpha*Ln(1/epsilon - 1), mu-alpha*Ln(1/(1-epsilon)-1))~
+Do Probdist(Logistic_pdf(mu, alpha,xp),xp)
+NodeLocation: 200,56,1
+NodeSize: 52,24
+NodeInfo: 1,1,1,1,1,1,0
+WindState: 1,74,67
+NodeColor: 39321,39325,65535
+
+Close Logarithmic
+
+{!40404|FreePassObjectCount gYjCmvR1Yx52CF1pUGt3QYSZPSsU2Wz8WTWCqd9ewT66F$3phLgH8MMNJCwMtXtLbWjEufM5$7LTJTJH1S9HNen$mWK3qj$Lcu$hYSGhzGXXeoXID0BessztviExhO_SciXHHMBOt79IEI7hQCoOaixpkmPGV0IMXVbS2pdxQce_vwoYRR1ESUWXYE1i6jAVTanMDrFm4Wjfmw11voW6nDYF18C33avz86JqQBfGiF84IDxdBgNMWcXTOEyWsHsep0sphFl3b$JNDAFlDm5iZnyqlmQsP47SYQPB5mAlQ_Qt9JYYRiFZfss_tVIBzdzFGCOfhcyKgp9GHRYYQJ1dIkC0TXJf1QpDf5Y0V_V1Z7hGsT5kN2kQ7sbL6ugUJ8_skdXROKIHGHIKNRWciqy6GSer3IXo4Nf_Jf0OnBc1UxPuOvR_Y7iIvYBrWCvdM5rdPC0rhYPIB50yvtsstux_17DKSblv5HUjyCTl2Lg0Mk6VvKmDhAfAhDmKvV6jM$gL1kSBxiUG4ujZQIB50xurqppqsvz17DLTcmx7KXl_EWn4Oj3Pm9YyNpHlEjEmIsQ0cDrU7oUAucL5seRF3vldVOIE96432346AEJPWdmv4FRes5LcuAUp8UrDc0RsJmEiDjFoLvV5jL_eJ$iQ9udPB$peUKB4zupljhggghknrw06}
+Library Distribution_variati
+Title: Distribution Variations
+Description: This library contains various functions for defining standard distributions using different sets of parameters.
+Author: Lonnie Chrisman and Fred Brunton~
+Lumina Decision Systems
+Date: Wed, Oct 20, 2004 12:18 AM
+SaveAuthor: Lonnie
+SaveDate: Tue, Mar 28, 2017 1:12 PM
+DefaultSize: 48,24
+NodeLocation: 112,168,1
+NodeSize: 56,24
+NodeInfo: 1,1,1,1,1,1,0,0,0,0,,,,0
+DiagState: 2,16,25,615,562,17
+WindState: 2,393,94,476,224
+FontStyle: Arial, 15
+Att_PreLoadScript: {!40404|FreePassObjectCount gYjCmvR1Yx52CF1pUGt3QYSZPSsU2Wz8WTWCqd9ewT66F$3phLgH8MMNJCwMtXtLbWjEufM5$7LTJTJH1S9HNen$mWK3qj$Lcu$hYSGhzGXXeoXID0BessztviExhO_SciXHHMBOt79IEI7hQCoOaixpkmPGV0IMXVbS2pdxQce_vwoYRR1ESUWXYE1i6jAVTanMDrFm4Wjfmw11voW6nDYF18C33avz86JqQBfGiF84IDxdBgNMWcXTOEyWsHsep0sphFl3b$JNDAFlDm5iZnyqlmQsP47SYQPB5mAlQ_Qt9JYYRiFZfss_tVIBzdzFGCOfhcyKgp9GHRYYQJ1dIkC0TXJf1QpDf5Y0V_V1Z7hGsT5kN2kQ7sbL6ugUJ8_skdXROKIHGHIKNRWciqy6GSer3IXo4Nf_Jf0OnBc1UxPuOvR_Y7iIvYBrWCvdM5rdPC0rhYPIB50yvtsstux_17DKSblv5HUjyCTl2Lg0Mk6VvKmDhAfAhDmKvV6jM$gL1kSBxiUG4ujZQIB50xurqppqsvz17DLTcmx7KXl_EWn4Oj3Pm9YyNpHlEjEmIsQ0cDrU7oUAucL5seRF3vldVOIE96432346AEJPWdmv4FRes5LcuAUp8UrDc0RsJmEiDjFoLvV5jL_eJ$iQ9udPB$peUKB4zupljhggghknrw06}
+{!40400|Att_clearTypeFonts: -1}
+
+Function Smooth_fractile(fract : ascending[I] ; ~
+ F : positive ascending[I] ;~
+I : index = common ;~
+ over : ... optional atomic;~
+singleSampleMethod: optional atomic numeric hidden)
+Title: Smooth Fractile
+Description: Given a set of fractiles, this returns a smooth distribution with tails having the indicated fractiles.  The fractiles to use must be specified in F, each value being between 0 and 1, and the fractile values must be in fract.  ~
+~
+For example, to specify a distribution having a P10, P50 and P90 of 7, 13, and 15, set:~
+F := [0.1, 0.5, 0.9]~
+fract := Table(F) ( 7, 13, 15 )~
+and call Smooth_Fractile(fract,F)
+Definition: {The "seed" distribution has the dimensions of fract except for F.}~
+var u:=if IsNotSpecified(singleSampleMethod) ~
+           Then normal(0,1,over:slice(fract,I,1))~
+           Else random(normal(0,1,over:slice(fract,I,1)), ~
+                                method:singleSampleMethod);~
+index pwr := 0..size(F)-1;~
+var N := cumnormalinv(f,0,1)^pwr;~
+var a := sum(Transpose(Invert(N,I,pwr),I,pwr)* fract,I);~
+sum(a*u^pwr,pwr)
+NodeLocation: 80,184,1
+NodeSize: 48,24
+WindState: 2,365,39,514,582
+
+Function Beta_m_sd(m : numeric, sd : positive ; lower,upper:optional numeric; over : ... optional atomic; singleSampleMethod  : optional atomic numeric hidden )
+Title: beta_m_sd(m,sd)
+Description: A beta distribution parameterized by the theoretical mean and std.dev. for the resulting distribution.~
+~
+Based on Method of Moments.~
+Reference:~
+Morgan, M.G., and Henrion, M., "Uncertainty", 1990, p. 97
+Definition: if IsNotSpecified(lower) then lower:=0;~
+if IsNotSpecified(upper) then upper:=1;~
+var u := (m-lower) / (upper-lower);~
+var v := (sd / (upper-lower))^2;~
+var a := (u^2 - u^3 - v * u) / v;~
+var b := (u * (1-u)^2 - v * (1-u)) / v;~
+if IsNotSpecified(singleSampleMethod) then~
+    beta(a,b,lower,upper)~
+else~
+    beta(a,b,lower,upper, singleSampleMethod:singleSampleMethod)
+NodeLocation: 320,120,1
+NodeSize: 96,20
+WindState: 2,57,102,524,409
+
+Function Lognormal_m_sd(mean, stddev; over: ... optional atomic; singleSampleMethod  : optional atomic numeric hidden )
+Title: LogNormal_m_sd(m,sd)
+Description: This function is no longer need since the built-in log normal function has been enhanced.  The definition has been updated accordingly.  It is included here only for backwards compatibility.~
+~
+This function works well when the ratio of mean/stddev >= 1.  Otherwise the sample stddev may vary considerably from the desired.~
+~
+
+Definition: if (isNotSpecified(singleSampleMethod)) then~
+    lognormal(Mean:mean,Stddev:stddev)~
+else ~
+    lognormal(Mean:mean,Stddev:stddev, singleSampleMethod:singleSampleMethod)~
+
+NodeLocation: 120,56,1
+NodeSize: 92,20
+WindState: 2,125,102,784,377
+
+Function Pert(min,mode,max; over : ... optional atomic; singleSampleMethod  : optional atomic numeric hidden )
+Title: Pert(min,mode,max)
+Description: A Pert-distribution, which is a beta distribution defined by a given min, mode, and max.
+Definition: var mean := (min + 4*mode  + max ) / 6;~
+var a :=6* (mean - min) / (max-min);~
+var b := 6*(max - mean) / (max-min);~
+if (isNotSpecified(singleSampleMethod)) then~
+    beta(a,b,min,max)~
+else ~
+   beta(a,b,min,max, singleSampleMethod:singleSampleMethod)
+NodeLocation: 320,56,1
+NodeSize: 96,20
+WindState: 2,23,9,784,377
+
+Function Gamma_m_sd(m,sd : positive; over : ... optional atomic; singleSampleMethod  : optional atomic numeric hidden  )
+Title: Gamma_m_sd(m,sd)
+Description: The gamma distribution, parameterized by the theoretical mean and std.dev. of the target distribution.~
+~
+Uses Method of Moments.  Reference:~
+Morgan, M.G., and Henrion, M., "Uncertainty", 1990, p. 93.
+Definition: var a := (m/sd)^2;~
+var b := sd^2/m;~
+if (isNotSpecified(singleSampleMethod)) then~
+    gamma(a,b)~
+else ~
+    gamma(a,b, singleSampleMethod:singleSampleMethod)
+NodeLocation: 120,120,1
+NodeSize: 92,20
+WindState: 2,93,30,784,377
+
+Function Warp_dist(dist : Samp ; ~
+ fracts : ascending[F] ; ~
+ F : positive ascending IndexType;~
+over : ... optional atomic,~
+singleSampleMethod : hidden optional atomic numeric )
+Title: Warp Dist
+Description: Applies a smooth warping funtion to a given sample so as to obtain the listed fractiles, while maintaining the approximate shape of the distribution.  For example, if you have p10, p50 and p90 percentiles and you want a "Normal-like" distribution, you could use:~
+~
+index F:=[10%,50%,90%];~
+var pctiles := Array(F,[5,10,20]);~
+Warp_dist(Normal(0,1),pctiles,F)~
+~
+The resulting distribution will not be a Normal (you can't necessarily obtain a normal with any three fractiles, since Normal has only 2 free parameters), but it will be basically bell-shaped -- skewed a bit to the left to obtain the given fractiles.~
+~
+Note that if you were to provide only two fractiles, Normality would be preserved in this example.
+Definition: var p := if IsNotSpecified(singleSampleMethod) ~
+             Then if IsSampleEvalMode then dist else getfract(dist,0.5)~
+              Else getfract(dist,Random(method:singleSampleMethod));~
+var z:=getfract(dist,F);~
+Cubicinterpextrap(z,fracts,p,F)
+NodeLocation: 192,184,1
+NodeSize: 48,24
+WindState: 2,10,13,498,590
+
+Module Dist_var__helper_fn1
+Title: Dist Var. Helper Fns
+Author: Lonnie
+Date: Thu, Mar 16, 2006 1:54 PM
+DefaultSize: 48,24
+NodeLocation: 312,184,1
+NodeSize: 56,24
+DiagState: 2,74,407,534,284,17
+
+Function Triangular_10_mode_9(p10,mode,p90 : scalar; over:...atomic optional ; singleSampleMethod : hidden optional scalar )
+Title: Triangular 10_Mode_90
+Description: A triangular distribution defined by its  p10 and p90 fractiles (p10<=p90) and mode.~
+~
+This is here for legacy models.  You should now use: Triangular10_mode_90 (without the first underscore).
+Definition: if IsNotSpecified(singleSampleMethod) then~
+   Triangular10_Mode_90( p10,mode,p90,over:over)~
+else~
+   Triangular10_mode_90( p10,mode,p90,over:over, singleSampleMethod:singleSampleMethod )
+NodeLocation: 128,216,1
+NodeSize: 92,20
+WindState: 2,418,134,680,280
+
+Function Triangular_u_given_h(d,h)
+Title: Triangular u given h
+Description: This is a helper function for Triangular_10_mode_90.  Gives base of a triangle given the dist from right corner to 10th percentile and the height.  The distance is not necessarily correct, it is used in a search.~
+Only valid for d>0.
+Definition: var a:=h/2;~
+var b:=-(h*abs(d)+0.1);~
+var c := h*abs(d)^2/2;~
+(-b + sqrt(b^2-4*a*c)) / (2*a)
+NodeLocation: 392,56,1
+NodeSize: 48,24
+
+Function Triangular_area_from(d1,d2,h)
+Title: Triangular Area from h
+Description: This is a helper function for Triangular_10_mode_90.~
+Gives the area of a triangle dist given the height and d1=pmode-p10, d2=pmode-p20.
+Definition: 1/2 * (Triangular_u_given_h(d1,h) + Triangular_u_given_h(d2,h)) * h
+NodeLocation: 272,56,1
+NodeSize: 56,24
+WindState: 2,584,482,476,224
+
+Function Cubicinterpextrap(D,R:numeric[I];X:atomic numeric;I:IndexType)
+Title: CubicInterpExtrap
+Description: Linear extrapolation, same as linearinterp, with the extended functionality that when X < min(D,I), the first line segment in D,R is used to extrapolate to the left, and for X>max(D,I) the last line segment is extrapolated.
+Definition: var n=size(I);~
+if n=1 then r else begin~
+  if X<slice(D,I,1) then~
+      (x-slice(D,I,1) ) * (slice(R,I,2)-slice(R,I,1)) / (Slice(D,i,2)-slice(D,i,1)) + slice(R,I,1)~
+  else if X>slice(D,I,n) then~
+      (x-slice(d,I,n)) * (slice(R,I,n)-slice(R,I,n-1)) / ~
+      (slice(d,I,n)-slice(d,I,n-1)) + Slice(R,I,n)~
+  else      ~
+      cubicinterp(d,r,x,I)~
+end
+NodeLocation: 120,56,1
+NodeSize: 80,24
+WindState: 2,143,90,650,421
+
+Function Triangular_10_50_90(p10,p50,p90 ; noErr : optional boolean ; over:... optional atomic; ~
+singleSampleMethod : optional hidden scalar )
+Title: Triangular_10_50_90
+Description: This defines a trianglar distribution given percentiles p10 <= p50 <= p90.~
+~
+This is a legacy name. You should now use Triangular10_50_90 instead (without the first underscore)
+Definition: if IsNotSpecified(singleSampleMethod) then~
+   Triangular10_50_90( p10,p50,p90,over:over)~
+else~
+   Triangular10_50_90( p10,p50,p90,over:over, singleSampleMethod:singleSampleMethod )
+NodeLocation: 328,216,1
+NodeSize: 92,20
+WindState: 2,360,32,765,465
+
+Text Te36
+Description: These are legacy names
+NodeLocation: 232,168,-1
+NodeSize: 200,16
+
+Close Dist_var__helper_fn1
+
+Function Erlang(m,n; over : ... optional atomic; singleSampleMethod : optional atomic numeric hidden  )
+Title: Erlang(m,n)
+Description: The Erlang distribution is really just a variant of the Gamma distribution with another name, although it generally refers to the special case when parameter n is an integer, while the corresponding parameter A in a gamma distribution is often non-integer.  ~
+~
+The time of arrival of the nth event in a Poisson process with mean arrival of m follows an Erlang distribution.
+Definition: if (isNotSpecified(singleSampleMethod)) then~
+    gamma(n,m)~
+else ~
+    gamma(n, m, singleSampleMethod:singleSampleMethod)
+NodeLocation: 80,264,1
+NodeSize: 52,24
+WindState: 2,104,36,476,378
+
+Function Pareto(a,b; over : ... optional atomic; singleSampleMethod : optional atomic numeric hidden  )
+Title: Pareto(a,b)
+Description: The Pareto distribution.   ~
+The "classic" use of the Pareto distribution is to model the distribution of wealth in a society, under an assumption that a smaller percentage of the people own a larger percentage of the wealth (e.g., 20% of the population control 80% of the wealth).~
+~
+The Pareto distribution is appropriate for a variety of "population" models.  Examples: The size of objects in a population (e.g., grains of sand),  value of assets in a collection of assets, file sizes, word frequencies, number of acquaintances of a given person, etc.
+Definition: if (isNotSpecified(singleSampleMethod)) then~
+    b * (1-uniform(0,1,over:a,b)) ^ (-1/a)~
+else~
+    b*(1-uniform(0,1,singleSampleMethod:singleSampleMethod,~
+                               over:a,b)) ^ (-1/a)
+NodeLocation: 200,264,1
+NodeSize: 48,24
+WindState: 2,613,82,476,448
+
+Function Rayleigh(mode; over : ... optional atomic; singleSampleMethod  : optional atomic numeric hidden  )
+Title: Rayleigh(mode)
+Description: The Rayleigh distribution results when you have two orthogonal components that are each normally distributed, such as might be the case with Wind Speed.  The length of the vector itself will then have a Rayleigh distribution.~
+~
+The Rayleigh is a special case of the Weibull distribution -- Weibull(2,sqrt(2)*mode).  It also coincides with Chi-Squared, conditional exponential, and the Rice distributions.
+Definition: if (isNotSpecified(singleSampleMethod)) then~
+    Sqrt((-2*mode^2*Ln(Uniform(0,1,over:mode))))~
+else~
+    Sqrt((-2*mode^2*Ln(Uniform(0,1,~
+    singleSampleMethod:singleSampleMethod,over:mode))))
+NodeLocation: 336,264,1
+NodeSize: 64,24
+WindState: 2,14,25,596,399
+
+Function Negbinomial(r,p; over : ... optional atomic; singleSampleMethod  : optional atomic numeric hidden  )
+Title: NegBinomial(r,p)
+Description: The number of events that occur in a binomial process with probability p of success until the r'th success occurs.
+Definition: if (isNotSpecified(singleSampleMethod)) then~
+    Poisson(Gamma(r,(1-p)/p))~
+else~
+   Poisson(Gamma(r,(1-p)/p,singleSampleMethod:singleSampleMethod),~
+   singleSampleMethod:singleSampleMethod)
+NodeLocation: 96,344,1
+NodeSize: 68,24
+WindState: 2,341,91,498,284
+
+Function Inversegaussian(A,B : positive ; over : ... optional atomic; singleSampleMethod  : optional atomic numeric hidden  )
+Title: InverseGaussian(A,B)
+Description: The inverse gaussian distribution with location parameter A and scale parameter B.  Used in reliability studies.  Gives the first passage time in a standard Brownian motion with postive drift.~
+~
+Some books refer to this as the Wald Distribution.  Others define the Wald distribution as the special case where A=1.~
+~
+This algorithm due to:~
+* Michael, Schucany, and Haas (1976)
+Definition: if (isNotSpecified(singleSampleMethod)) then~
+(~
+  var y:=Normal(0,1,over:A,B)^2;~
+  var x := a + (a^2*y - a * sqrt( 4*A*B*y + (A*y)^2 ) ) / (2*B);~
+  if uniform(0,1) * (A+x) <= A~
+  then x~
+  else a^2/x~
+)~
+else~
+(~
+  var y:=Normal(0,1,singleSampleMethod:singleSampleMethod,over:A,B)^2;~
+  var x := a + (a^2*y - a * sqrt( 4*A*B*y + (A*y)^2 ) ) / (2*B);~
+  if uniform(0,1,singleSampleMethod:singleSampleMethod,over:A,B) * (A+x) <= A~
+  then x~
+  else a^2/x~
+)
+NodeLocation: 240,344,1
+NodeSize: 68,24
+WindState: 2,399,161,583,428
+
+Function Wald(k : positive; over : ... optional atomic; singleSampleMethod  : optional atomic numeric hidden  )
+Title: Wald(k)
+Description: The Wald distribution.~
+See also InverseGaussian -- some texts call that distribution the Wald distribution.
+Definition: if (isNotSpecified(singleSampleMethod)) then~
+    Inversegaussian(1,k)~
+else~
+    Inversegaussian(1,k, singleSampleMethod: singleSampleMethod)
+NodeLocation: 368,344,1
+NodeSize: 48,24
+WindState: 2,225,16,558,314
+
+Function Lorenzian(mode,scale; over : ... optional atomic; singleSampleMethod  : optional atomic numeric hidden  )
+Title: Lorenzian (mode,scale)
+Description: The Lorenzian distribution (also known as Cauchy, Cauchy-Lorenz, Lorenz, and Breit-Wigner) is a continuous bell-shaped distribution having the indicated mode, and with the second parameter specifying the half-width at the half-maximum density.  ~
+~
+It has uses in physics, especially in the study of resonance and spectroscopy where it describes the shape of spectral lines that are broadened through various resonances.~
+~
+The standard form, in which mode=0 and shape=1, is known as the standard Cauchy distribution.~
+~
+The Lorenz distribution has some unusual mathematical properties that are uncommon among the standard distributions.  Its mean, variance and higher moments are all undefined.  As a result, the law of large numbers does not apply to samples generated from a Lorenz distribution.~
+~
+One other property of interest:  The ratio of two standard normal random variables follows a standard Cauchy distribution.
+Definition: if (isNotSpecified(singleSampleMethod)) then~
+    mode + scale*tan( uniform(-90,90,over:mode,scale) )~
+else~
+    mode + scale*tan( uniform(-90,90,~
+    singleSampleMethod:singleSampleMethod,over:mode,scale))
+NodeLocation: 480,264,1
+NodeSize: 64,24
+WindState: 2,123,22,717,448
+
+Function Triangular10_50_90(p10,p50,p90 ; noErr : optional boolean = 0; over:... optional atomic; ~
+singleSampleMethod : optional hidden scalar )
+Title: Triangular10_50_90
+Description: This defines a trianglar distribution given percentiles p10 <= p50 <= p90.~
+~
+There are a couple downsides of defining a triangular distribution using percentiles, rather than using Min-Mode-Max as is done with the built-in Triangular distribution function.  First, the percentiles do not uniquely specify the triangular distribution.  When p10 and p90 are on opposite sides of the mode, there are often two possible triangular distributions with the indicated fractiles, and when p10 and p90 are on the same side of the mode, there is a fully unconstrained degree of freedom, leading to an infinite number of triangular distributions matching the fractiles.  In these cases, this function will select one of the possible consistent distributions.~
+~
+In addition to non-uniqueness, there are some combinations of p10<=p50<=p90 that have no triangular distribution with the indicated percentiles.  This may occur when p50-p10 << p90-p50 or p50-p10 >> p90-p50   (where << means **much** less than).  In this case, an error results.  You can suppress this error by setting the noErr parameter to false, in which case a triangular distribution not precisely matching the indicated p10, p50 and p90 percentiles is returned.  In many cases, the non-precise distribution will be close to the percentiles, but in some cases it may be substantially different.
+Definition: if (p10=p50 and p50=p90) then Triangular(p10,p50,p90)~
+else begin~
+~
+  var flip := p50-p10<p90-p50;~
+  var tmp := p10;~
+  p10 := if flip then -p90 else p10;~
+  p50 := if flip then -p50 else p50;~
+  p90 := if flip then -tmp else p90;~
+~
+  var a:=(p50-sqrt(5)*p10) / (1-sqrt(5));~
+~
+  var k:=10*(p10-a)^2;~
+  var qa :=-9;~
+  var qb := (-2*a + 20*p90);~
+  var qc := (a^2 - 10*p90^2 - k);~
+  var qterm := qb^2 - 4*qa*qc;~
+~
+  if ( not noErr and (qTerm<0 or (p90-a)/(p10-a) < 3)) then error( "In Function "&(identifier of self)&", there is no triangular distribution with the requested pecentiles p10="&p10&", p50="&p50&", p90="&p90);~
+~
+  qTerm := max([qTerm,0]);~
+~
+  var c1 := (-qb - sqrt(qTerm)) / (2*qa);~
+  var b1 := k/(c1-a)+a;~
+  var c2 := (-qb + sqrt(qTerm)) / (2*qa);~
+  var b2 := k/(c2+a)+a;~
+  var err1 := IgnoreWarnings(abs(c1-sqrt((c1-b1)*(c1-a)/10) - p90));~
+  var err2 := IgnoreWarnings(abs(c2-sqrt((c2-b2)*(c2-a)/10) - p90));~
+  err1 := if IsNaN(err1) or c1<b1 then INF else err1;~
+  err2 := if IsNaN(err2) or c2<b2 then INF else err2;~
+~
+  var c := if err1<=err2 then c1 else c2;~
+  var b := if err1<=err2 then b1 else b2;~
+~
+  tmp := a;~
+  a := if flip then -c else a;~
+  b := if flip then -b else b;~
+  c := if flip then -tmp else c;~
+~
+  if IsNotSpecified(singleSampleMethod) then ~
+    IgnoreWarnings(Triangular(a,b,c))~
+  else~
+    IgnoreWarnings(Triangular(a,b,c,singleSampleMethod:singleSampleMethod))~
+~
+end
+NodeLocation: 336,424,1
+NodeSize: 96,24
+WindState: 2,535,7,727,723
+
+Function Triangular10_mode_90(p10,mode,p90 : scalar; over:...atomic optional ; singleSampleMethod : hidden optional scalar )
+Title: Triangular10_Mode_90
+Description: A triangular distribution defined by its  p10 and p90 fractiles (p10<=p90) and mode.
+Definition: var d1 := mode-p10;~
+var d2 := p90-mode;~
+~
+var h := 0;~
+var u1:=0;~
+var u2:=0;~
+~
+if d1<0 then (~
+  u2 := (3*d2+d1)/2; ~
+  var Area2 := (u2/ (u2-d2))^2 * 0.1;~
+  h  := 2 * Area2 / u2;~
+  u1 := 2 * (1-Area2) / h;~
+) else if d2<0 then (~
+  u1 := (3*d1+d2)/2; ~
+  var Area1 := (u1/ (u1-d1))^2 * 0.1;~
+  h := 2*Area1 / u1;~
+  u2 := 2*(1-Area1)/h;~
+) else if (d1+d2=0) then (~
+  triangular(p10,mode,p90)~
+) else (~
+  var ub := 2 / (d1+d2);~
+  var lb := 0.8*ub;~
+  while (Triangular_area_from(d1,d2,lb)>1) ( lb := lb  * 0.8 );~
+  { Now we have an upper and lower bound.  ~
+     Do a binary search for the real h that makes Area=1 }~
+  h := (lb+ub)/2;~
+  while ( ub-lb > 1e-4 ) (     ~
+      if (Triangular_area_from(d1,d2, h:=(lb+ub)/2 ) > 1.0 ) then ub:=h else lb:=h;~
+  );~
+  u1:=Triangular_u_given_h(d1,h);~
+  u2:=Triangular_u_given_h(d2,h)~
+);~
+~
+if IsNotSpecified(singleSampleMethod) then~
+   Triangular( mode-u1, mode, mode+u2 )~
+else~
+   Triangular( mode-u1, mode, mode+u2, singleSampleMethod:singleSampleMethod )
+NodeLocation: 128,424,1
+NodeSize: 96,24
+WindState: 2,695,2,607,712
+
+Function Weibull_10_50_90(x10,x50,x90 : atom ; ~
+over : ... optional atom ; ~
+singleSampleMethod : optional atom hidden number)
+Title: Weibull 10 50 90
+Description: Defines a translated Weibull distribution having the indicated 10-50-90 percentiles, if possible.  A translated Weibull distribution has an underlying form Weibull(a,b)+c~
+~
+Not all combinations of fractiles can be fit exactly.  It can be shown that no Weibull distribution has fractiles satisfying (x50-x10) / (x90-x50) > 1.569.  Thus, if your fractiles have skew exceeding this limit, the resulting distribution will not fit the fractiles exactly.  In that case, a distribution in the general vicinity is returned (i.e., it'll do the best it can)
+Definition: if not (x10<x50<x90) then error("The parameters to Weibull_10_50_90 must be ascending");~
+~
+var c := x10 - (x90-x10)/10;~
+var a := 1;~
+var b := 1;~
+var y10 := ln(-ln(1-10%));~
+var y90 := ln(-ln(1-90%));~
+var prevy50 := null;~
+var err := 1;~
+var iter := 1;~
+while (err>1e-6 and iter<100) (~
+  a := (y90-y10) / (ln(x90-c) - ln(x10-c) );~
+  var da := (y90-y10) * (x10-x90) / ( (c-x10)*(c-x90)*(ln(x10-c)-ln(x90-c))^2 );~
+  b := exp( -(y10 - a*ln(x10-c))/a );~
+  var db := exp(-y10/a) * (y10*(x10-c)*da/a^2 -1);~
+  var y50 := ((x50-c)/b)^a ;~
+  var u50 := (x50-c)/b;~
+  var dy50 := u50^a * (da * ln(u50) + (a*(x50-c)*db + b) / (b * (c-x50)));~
+  var cnext := Min([x10,c-(y50-ln(2))/dy50]);~
+  cNext := if cNext>=x10 then 0.9*cNext+0.1*c else cNext;~
+  c := cNext;~
+  if prevy50<>null then err := abs(prevy50-y50);~
+  prevy50 := y50;~
+  iter := iter+1~
+);~
+~
+if IsNotSpecified(singleSampleMethod) then ::Weibull(a,b)+c~
+else ::Weibull(a,b,singleSampleMethod:singleSampleMethod)+c
+NodeLocation: 80,496,1
+NodeSize: 48,24
+WindState: 2,179,45,1073,754
+
+Close Distribution_variati
+
+{!40404|FreePassObjectCount HJ0Y$8gGnAKHRUG2jVq4Nfhoehrb7h04LLSCClDkEUptnpu4sQKdrjt$jcChSKo2u39uYFy9oYu0XwiYJ60WoQRNzrh7k2F1CPcwqWoPx6CLU7VG3smGYDmiidtWBse0AirmaHlGn13ARpnXfOvJcgnukM3DmLwcuyVP5jP0MWzXhd2qOuSx9Bpqtw4qMNlvgmphHynjFZMWS$tiMkB5Oj2UWKlSwAXhz0olmuc6DcmilbZImPPoDeAICkT1SwLb_UaSyfBa0PdHKPUgS0EUijxwps0mIUiut30tBudMTfGnCPWVbHldn$5z_tX$me6M0yyqUHyOeUj_FdbLc2Qc$7MEZJ2iEcm$Ou_sFpJd8OllC4xjNTyT_nlv4CB4vkT5d4HmQG7xcBiDeyAG99l7vv$$jmwgCHfr5FF8BB5vbFoHfy1D$Zg4IamojoqnbIvV$OcjxlLGcxBJH18CB1mP1ayFOeU63Ro4EE09FG8vaEpDdo4ycgyKccEFILVFnesBMSYPAodZ5P2296_sV2SMf_JmcWL2WnFciontW4hHd2XuVucN7v7RpwqvwzGLlCe6ot_kbOsDNdx_qrw7fEoOHVggOB8Dd4W_sxrcQBnWNZo0GdLCgTa1LMg5tmV9pEZl8ruoPJKmBXlpfaf2nNgG_5$0mSdBpMxeglpv7kGSwMObVINa6hFrby572kTCgwFkLHGEEQqKksJuolhfpBnFdlfgp4gJxbWosXXUGmL4x7MaqWEwP5YvQ31224UDtAOfwhuDtaG_5UeadTRAeH_pzAMa3vX5jGYe1YOH935j7u2GPa3uazfg_6IOK96Bb2UyluubqS8lOLeofp9nT1NsDLHW3yi9vsOhjsK4ua2f8OSpI6zphkfzLezcbR_qzHXbsszjwY9h5LNkNBBCA$kP4f7VmB3dTGd_NmBc2VzSyS_W4eDpQ2hK$hN5pYI3reRG5yphaUPLIFEDDEGJNSYfmv2COZn$DTk$IbvEbxIh5WyOrJoIpKtR0bCpR4kP4nVDzjVH4ujYPH92zuqmkjjjlorv$5BJScny9Mbq4LcvDXtDbzMmBd4Y0V0X3cAlLyZCsWBtaI1nXJ5vjZPF70wrmjgeddegjnrx19HQalw7Lap4LdwFZvGd0PqFh8d5b6dAkItT4iL$gL2lTDzkWJ6xndUNGA51_xwwwy_15AGNUdnx6IVjyCTl1Lf_Kh4TsHi9d5a4a6eBmLyZBqUArYG$kVG3sgUKB3yrmhdaYYXYacgkpv19IRco_CQfvBSl3Oj4RqDd2UxOtNtOxU2dDqR3iL0iP6rbL7wjWLB1vngbWTQOONOQTXchow2BLXjw8Mbr5NgzIdzMk7YzQtLqKrMuR$a9mN0fK$iQ8tdPB_ocRH8$uoidaYWWXYadint_5DMWgs3GVk$HZtBWtEc$PqGiAe7d9hEoNzZBpT7oUBvdN8wiVJ8$rjcWRMIGEDDEGJNRXdls$9JViw8OevBUo7TqBZzNpEh9e8fAjGqP$cEtXBtZH$kUF1qeSH8$tmgbXUSQQQRTXbflsz6FQbn_CQgxDVp7Sp9XwKlAc4Y1X2a7hFrR3gKzfK1kTCzkWJ7yofWPIC841$___026AFLTbkt2EQds5LcuBVp8VsEe1SuLpHnHpLuS1dErU7oT9saJ3qbOC$rhYQJD730zxxxy_159FLTbku3FSfu8OgyFZuEbzLl9a0UyRxRzW3eDpR2hL0iO5qYJ4sfTH7zrjcXSOLJIHHJLOSXdkr_8IUgt5Kar6Pj1Mj4SrFf5Y$TzT_W3dBnO$eHxcI$iRBxiUI6xneWOIC841$__$037BHNUclv4FRdr4Kas8R}
+Library Distribution_densiti
+Title: Distribution Densities Library
+Description: The functions in this library return the probability densities (for continuous distributions) and probabilities (for discrete distributions) for the standard distribution functions that are built into Analytica.  It also includes Cumulative distribution functions for continuous distributions and some discrete distributions, and inverse cumulative functions for most continuous distributions.~
+~
+Probability densities are useful for importance sampling.  In importance sampling, you can sample from a distribution different from your target distribution, and then weight each point by f_target(x) / f_sample(x), where f_target is the density (or prob) of your target distribution, f_sample the density (or prob) of your sample distribution.~
+~
+Cumulative distribution functions are used in classical hypothesis testing for determining the p-value (or significance level) of a hypothesis based on a data sample, and inverse cumulative distributions are used in finding confidence intervals.~
+~
+Of course PDF, CDF and Inverse CDF functions are used in many other areas of statistical analysis as well.
+Author: Lonnie Chrisman, Ph.D.~
+Lumina Decision Systems
+Date: Fri, Nov 17, 2006 8:19 AM
+SaveAuthor: Lonnie
+SaveDate: Fri, Apr 27, 2018 12:30 PM
+DefaultSize: 48,24
+NodeLocation: 248,72,1
+NodeSize: 56,32
+NodeInfo: 1,1,1,1,1,1,0,0,0,0,,,,0
+DiagState: 2,47,22,388,321,17
+WindState: 2,287,119,1071,750
+FontStyle: Arial, 15
+Att_PreLoadScript: {!40404|FreePassObjectCount HJ0Y$8gGnAKHRUG2jVq4Nfhoehrb7h04LLSCClDkEUptnpu4sQKdrjt$jcChSKo2u39uYFy9oYu0XwiYJ60WoQRNzrh7k2F1CPcwqWoPx6CLU7VG3smGYDmiidtWBse0AirmaHlGn13ARpnXfOvJcgnukM3DmLwcuyVP5jP0MWzXhd2qOuSx9Bpqtw4qMNlvgmphHynjFZMWS$tiMkB5Oj2UWKlSwAXhz0olmuc6DcmilbZImPPoDeAICkT1SwLb_UaSyfBa0PdHKPUgS0EUijxwps0mIUiut30tBudMTfGnCPWVbHldn$5z_tX$me6M0yyqUHyOeUj_FdbLc2Qc$7MEZJ2iEcm$Ou_sFpJd8OllC4xjNTyT_nlv4CB4vkT5d4HmQG7xcBiDeyAG99l7vv$$jmwgCHfr5FF8BB5vbFoHfy1D$Zg4IamojoqnbIvV$OcjxlLGcxBJH18CB1mP1ayFOeU63Ro4EE09FG8vaEpDdo4ycgyKccEFILVFnesBMSYPAodZ5P2296_sV2SMf_JmcWL2WnFciontW4hHd2XuVucN7v7RpwqvwzGLlCe6ot_kbOsDNdx_qrw7fEoOHVggOB8Dd4W_sxrcQBnWNZo0GdLCgTa1LMg5tmV9pEZl8ruoPJKmBXlpfaf2nNgG_5$0mSdBpMxeglpv7kGSwMObVINa6hFrby572kTCgwFkLHGEEQqKksJuolhfpBnFdlfgp4gJxbWosXXUGmL4x7MaqWEwP5YvQ31224UDtAOfwhuDtaG_5UeadTRAeH_pzAMa3vX5jGYe1YOH935j7u2GPa3uazfg_6IOK96Bb2UyluubqS8lOLeofp9nT1NsDLHW3yi9vsOhjsK4ua2f8OSpI6zphkfzLezcbR_qzHXbsszjwY9h5LNkNBBCA$kP4f7VmB3dTGd_NmBc2VzSyS_W4eDpQ2hK$hN5pYI3reRG5yphaUPLIFEDDEGJNSYfmv2COZn$DTk$IbvEbxIh5WyOrJoIpKtR0bCpR4kP4nVDzjVH4ujYPH92zuqmkjjjlorv$5BJScny9Mbq4LcvDXtDbzMmBd4Y0V0X3cAlLyZCsWBtaI1nXJ5vjZPF70wrmjgeddegjnrx19HQalw7Lap4LdwFZvGd0PqFh8d5b6dAkItT4iL$gL2lTDzkWJ6xndUNGA51_xwwwy_15AGNUdnx6IVjyCTl1Lf_Kh4TsHi9d5a4a6eBmLyZBqUArYG$kVG3sgUKB3yrmhdaYYXYacgkpv19IRco_CQfvBSl3Oj4RqDd2UxOtNtOxU2dDqR3iL0iP6rbL7wjWLB1vngbWTQOONOQTXchow2BLXjw8Mbr5NgzIdzMk7YzQtLqKrMuR$a9mN0fK$iQ8tdPB_ocRH8$uoidaYWWXYadint_5DMWgs3GVk$HZtBWtEc$PqGiAe7d9hEoNzZBpT7oUBvdN8wiVJ8$rjcWRMIGEDDEGJNRXdls$9JViw8OevBUo7TqBZzNpEh9e8fAjGqP$cEtXBtZH$kUF1qeSH8$tmgbXUSQQQRTXbflsz6FQbn_CQgxDVp7Sp9XwKlAc4Y1X2a7hFrR3gKzfK1kTCzkWJ7yofWPIC841$___026AFLTbkt2EQds5LcuBVp8VsEe1SuLpHnHpLuS1dErU7oT9saJ3qbOC$rhYQJD730zxxxy_159FLTbku3FSfu8OgyFZuEbzLl9a0UyRxRzW3eDpR2hL0iO5qYJ4sfTH7zrjcXSOLJIHHJLOSXdkr_8IUgt5Kar6Pj1Mj4SrFf5Y$TzT_W3dBnO$eHxcI$iRBxiUI6xneWOIC841$__$037BHNUclv4FRdr4Kas8R}
+{!40400|Att_clearTypeFonts: -1}
+
+Library Cumulative_densities
+Title: Cumulative Densities
+Author: Lonnie
+Date: Wed, Aug 06, 2008 12:30 PM
+DefaultSize: 48,24
+NodeLocation: 80,104,1
+NodeSize: 56,24
+DiagState: 2,386,5,988,744,17
+
+Function CumChiSquared(x, dof)
+Title: Cum~
+ChiSquared
+Description: The cumulative probability at x for a Chi-squared distribution with dof degree-of-freedom.
+Definition: GammaI(x/2,dof/2)
+NodeLocation: 88,48,1
+NodeSize: 56,24
+WindState: 2,424,469,476,224
+{!40600|Att_WikiHelpURL: [wiki]}
+
+Function CumStudentT(t,dof)
+Title: CumStudentT
+Description: The cumulative distribution function function for the Student's T distribution with dof degrees of freedom.
+Definition: var x := (t+sqrt(t^2+dof)) / (2*sqrt(t^2+dof));~
+BetaI(x,dof/2,dof/2)
+NodeLocation: 224,48,1
+NodeSize: 64,24
+WindState: 2,298,533,476,224
+{!40600|Att_WikiHelpURL: [wiki]}
+
+Function CumFDist(f,dof1,dof2)
+Title: CumFDist
+Description: The Cumulative Probability Function for the F-distribution.
+Definition: BetaI( dof1*f / (dof1*f + dof2), dof1 / 2, dof2 / 2)
+NodeLocation: 368,48,1
+NodeSize: 56,24
+WindState: 2,348,77,476,224
+{!40600|Att_WikiHelpURL: [wiki]}
+
+Function CumChiSquaredInv(p,dof)
+Title: Cum~
+ChiSquaredInv
+Description: The inverse cumulative distribution function for the Chi Squared distribution with dof degrees of freedom.
+Definition: 2*GammaIInv(p,dof/2)
+NodeLocation: 88,120,1
+NodeSize: 64,24
+WindState: 2,293,90,476,224
+{!40600|Att_WikiHelpURL: [wiki]}
+
+Function CumStudentTInv(p,dof)
+Title: CumStudentTInv
+Description: The inverse cumulative distribution function for the Student's T distribution with dof degrees of freedom.
+Definition: var x := BetaIInv(p,dof/2,dof/2);~
+var a := (2*x-1)^2;~
+(if p<0.5 then -1 else 1) * sqrt( dof * a / (1-a))~
+
+NodeLocation: 232,120,1
+NodeSize: 72,24
+WindState: 2,447,319,476,224
+{!40600|Att_WikiHelpURL: [wiki]}
+
+Function CumFDistInv(p,dof1,dof2)
+Title: CumFDistInv
+Description: The Inverse Cumulative Probability Function for the F-distribution.
+Definition: var x := BetaIInv( p, dof1 / 2, dof2 / 2);~
+dof2 * x / ( dof1 * (1-x) )
+NodeLocation: 376,120,1
+NodeSize: 64,24
+WindState: 2,376,499,476,224
+{!40600|Att_WikiHelpURL: [wiki]}
+
+Function CumExponential(x,rate)
+Title: Cum~
+Exponential
+Description: Cumulative probability up to x of an Exponential distribution with given mean.   This is the area to the left of x.
+Definition: (1 - exp(-x*rate)) * (x>=0)
+NodeLocation: 88,232,1
+NodeSize: 60,25
+WindState: 2,102,83,728,314
+{!40600|Att_WikiHelpURL: [wiki]}
+
+Function CumExponentialInv(p,rate)
+Title: Cum~
+ExponentialInv
+Description: The inverse cumulative distribution function for an Exponential distribution with given mean.
+Definition: -ln(1-p) / rate
+NodeLocation: 88,288,1
+NodeSize: 64,24
+WindState: 2,330,155,476,323
+{!40600|Att_WikiHelpURL: [wiki]}
+
+Function CumLogistic(x,mean ; scale : optional=1)
+Title: Cum Logistic
+Description: The cumulative probability function for the logistic distribution.  This gives the probability area to the left of x in a Logistic(mean,scale) distribution.
+Definition: 1/(1+exp(-(x-mean)/scale))
+NodeLocation: 216,232,1
+NodeSize: 60,25
+{!40600|Att_WikiHelpURL: [wiki]}
+
+Function CumLogisticInv(p,mean ; scale : optional=1)
+Title: Cum Logistic Inv
+Description: The inverse cumulative distribution function for the logistic distribution.  This is the point x at which the area to the left of x is p.
+Definition: mean - scale * ln(1/p - 1)
+NodeLocation: 216,288,1
+NodeSize: 60,25
+WindState: 2,464,332,476,224
+{!40600|Att_WikiHelpURL: [wiki]}
+
+Function CumLogNormal(x ; median,gsdev,mean,stddev : optional atomic)
+Title: Cum LogNormal
+Description: The cumulative distribution function for the LogNormal distribution.~
+This is the probability area to the left of x.~
+You must specify x and then any two of distribution parameters.
+Definition: if AnalyticaVersion >= 50103 Then ~
+	::CumLogNormal(x,median,gsdev,mean,stddev)~
+else begin ~
+~
+	if IsNotSpecified(median)+IsNotSpecified(gsdev)+~
+	    IsNotSpecified(mean)+IsNotSpecified(stddev)<>2 ~
+	then Error("You must specify exactly two of the distribution parameters to CumLogNormal");~
+	~
+	var w := 0;~
+	if not IsNotSpecified(mean) and not IsNotSpecified(stddev) then (~
+	   w := (stddev/mean)^2+1~
+	);~
+	~
+	if IsNotSpecified(median) then (~
+	  median := if IsNotSpecified(gsdev) then mean/sqrt(w)~
+	                  else if IsNotSpecified(mean) then (~
+	                            var tmp := exp(ln(gsdev)^2);~
+	                            stddev/sqrt(tmp*(tmp-1))~
+	                   ) else mean * exp(-ln(gsdev)^2/2)~
+	);~
+	~
+	if IsNotSpecified(gsdev) then  (~
+	  gsdev := if IsNotSpecified(median) then exp(sqrt(ln(w)))~
+	                 else if IsNotSpecified(mean) then exp(sqrt(ln(1+sqrt(1+4*(stddev/median)^2))/2))~
+	                 else exp(sqrt(2*ln(mean/median)))~
+	);~
+	~
+	CumNormal(ln(x),ln(median),ln(gsdev))~
+end
+NodeLocation: 352,232,1
+NodeSize: 60,24
+WindState: 2,83,76,887,805
+{!40600|Att_WikiHelpURL: [wiki]}
+
+Function CumLogNormalInv(p ; median,gsdev,mean,stddev : optional atomic)
+Title: Cum LogNormalInv
+Description: The inverse cumulative distribution function for the LogNormal distribution.~
+This is the value x such that the probability area to the left of x is p.~
+You must specify p and then any two of distribution parameters.
+Definition: If AnalyticaVersion>50103 then ~
+	::CumLogNormalInv(p,median,gsdev,mean,stddev)~
+Else begin~
+	if IsNotSpecified(median)+IsNotSpecified(gsdev)+~
+	    IsNotSpecified(mean)+IsNotSpecified(stddev)<>2 ~
+	then Error("You must specify exactly two of the distribution parameters to CumLogNormalInv");~
+	~
+	var w := 0;~
+	if not IsNotSpecified(mean) and not IsNotSpecified(stddev) then (~
+	   w := (stddev/mean)^2+1~
+	);~
+	~
+	if IsNotSpecified(median) then (~
+	  median := if IsNotSpecified(gsdev) then mean/sqrt(w)~
+	                  else if IsNotSpecified(mean) then (~
+	                            var tmp := exp(ln(gsdev)^2);~
+	                            stddev/sqrt(tmp*(tmp-1))~
+	                   ) else mean * exp(-ln(gsdev)^2/2)~
+	);~
+	~
+	if IsNotSpecified(gsdev) then  (~
+	  gsdev := if IsNotSpecified(median) then exp(sqrt(ln(w)))~
+	                 else if IsNotSpecified(mean) then exp(sqrt(ln(1+sqrt(1+4*(stddev/median)^2))/2))~
+	                 else exp(sqrt(2*ln(mean/median)))~
+	);~
+	~
+	exp(CumNormalInv(p,ln(median),ln(gsdev)))~
+end
+NodeLocation: 352,288,1
+NodeSize: 64,24
+WindState: 2,68,88,745,616
+{!40600|Att_WikiHelpURL: [wiki]}
+
+Function CumTriangular(x,min,mode,max)
+Title: Cum Triangular
+Description: The cumulative distribution function for the Triangular(min,mode,max) distribution.  This gives the probability area to the left of x.
+Definition: var h := 2/(max-min);~
+if x<min then 0~
+else if x>max then 1~
+else if x<mode then 0.5 * h * (x-min)^2 / (mode-min) ~
+else 0.5 * (max-min) * h - 0.5 * h * (max-x)^2 / (max-mode)
+NodeLocation: 88,384,1
+NodeSize: 60,24
+WindState: 2,573,38,477,260
+{!40600|Att_WikiHelpURL: [wiki]}
+
+Function CumTriangularInv(p,min,mode,max)
+Title: Cum TriangularInv
+Description: The inverse cumulative distribution function for a Triangular(min,mode,max) distribution.  This is the value where p area of probability mass is to the left.
+Definition: var h := 2/(max-min);~
+var a1 := 0.5 * (mode-min) * h;~
+if p<=a1 then~
+   min + sqrt(2*(mode-min) *p / h)~
+else~
+   max - sqrt(2*(max-mode)*(1-p) / h)
+NodeLocation: 88,441,1
+NodeSize: 60,24
+WindState: 2,509,262,508,314
+{!40600|Att_WikiHelpURL: [wiki]}
+
+Function CumUniform(x,lb,ub)
+Title: Cum Uniform
+Description: The cumulative distribution function for the Uniform(lb,ub) distribution.
+Definition: if x<lb then 0~
+else if x>ub then 1 else~
+(x-lb) / (ub-lb)
+NodeLocation: 208,384,1
+NodeSize: 48,24
+WindState: 2,353,250,591,345
+{!40600|Att_WikiHelpURL: [wiki]}
+
+Function CumUniformInv(p,lb,ub)
+Title: Cum UniformInv
+Description: The inverse cumulative distribution function for the Uniform(lb,ub) distribution.
+Definition: lb + p*(ub-lb)
+NodeLocation: 208,440,1
+NodeSize: 56,24
+{!40600|Att_WikiHelpURL: [wiki]}
+
+Function CumWeibull(x,shape ; scale : optional = 1 )
+Title: Cum Weibull
+Description: The cumulative distribution function for the Weibull distribution.
+Definition: 1-exp( -(x/scale)^shape )
+NodeLocation: 320,384,1
+NodeSize: 48,24
+{!40600|Att_WikiHelpURL: [wiki]}
+
+Function CumWeibullInv(p,shape ; scale : optional=1)
+Title: Cum WeibullInv
+Description: The inverse cumulative probability function for the Weibull distribution
+Definition: scale * ( -ln(1-p) )^(1/shape)
+NodeLocation: 336,440,1
+NodeSize: 56,24
+{!40600|Att_WikiHelpURL: [wiki]}
+
+Text Te99911
+Description: Cumulative functions for some discrete distributions:
+NodeLocation: 136,512,-1
+NodeSize: 112,20
+
+Function CumGeometric(k : Number ; p : nonNegative)
+Title: Cum Geometric
+Description: The cumulative geometric distribution.  This returns the probability that you would see fewer than 1 Bernoulli success in k independent trials, where p is the probability of success in each trial.
+Definition: (k>=0) * (1-(1-p)^k)
+NodeLocation: 432,576,1
+NodeSize: 64,24
+WindState: 2,22,527,476,224
+{!40600|Att_WikiHelpURL: [wiki]}
+
+Function CumGeometricInv(u,p : nonNegative atom)
+Title: Cum GeometricInv
+Description: The inverse cumulative probability of a Geometric(p) distribution.  This returns the smallest number of trials, k, such that the probability of seeing k or fewer trials is greater than or equal to «u», given that the probability of success for each independent trial is «p».
+Definition: var q := 1-p;~
+if p>0 and q>0 then   Ceil( ln(1-u)/ln(q) )~
+else if (q>0) then       Inf~
+else                           1
+NodeLocation: 432,632,1
+NodeSize: 64,24
+WindState: 2,102,83,476,420
+{!40600|Att_WikiHelpURL: [wiki]}
+
+Function CumNegativeBinomial(k,r,p)
+Title: Cum NegativeBinomial
+Description: The cumulative probability of a NegativeBinomial(r,p) distribution up to and including k.  This is the probability of seeing k or fewer successes by the time you've seen r failures, given that each independent Bernoulli trial has a probability of p of success.
+Definition: (k>=0) * (1-BetaI(p,k+1,r))
+NodeLocation: 600,576,1
+NodeSize: 80,24
+WindState: 2,70,541,678,376
+{!40600|Att_WikiHelpURL: [wiki]}
+
+Function CumNegativeBinomInv(u,r,p)
+Title: Cum NegativeBinomialInv
+Description: The inverse cumulative probability of a NegativeBinomial(r,p) distribution up to and including k.  Suppose you run an experiment until you see r failures, each trial having a probability p of success.  How many successes will you see?  This function computes the u'th fractile.  So for example, if you specify 20% for u, it would compute the number of successes, k, such that there is a 20% probability of seeing k or fewer successes.
+Definition: Ceil( BetaIaInv(1-u, p, r) - 1 )
+NodeLocation: 600,632,1
+NodeSize: 88,24
+WindState: 2,68,83,522,361
+{!40600|Att_WikiHelpURL: [wiki]}
+
+Alias New1411399889
+Title: Cum WeibullInv
+Definition: 1
+NodeLocation: 512,440,1
+NodeSize: 72,24
+NodeColor: 58978,52427,65535
+Original: CumWilcoxonInv
+{!40600|Att_WikiHelpURL: [wiki]}
+
+Alias New1411399886
+Title: Cum Weibull
+Definition: 1
+NodeLocation: 504,384,1
+NodeSize: 64,24
+NodeColor: 58978,52427,65535
+Original: CumWilcoxon
+{!40600|Att_WikiHelpURL: [wiki]}
+
+Function CumGamma(x : Number atom ; ~
+alpha:NonNegative atom;~
+beta:recommended positive atom ; ~
+over : ... optional named atomic )
+Title: Cum Gamma
+Description: The cumulative gamma distribution function. Gamma is a distribution on the positive reals.~
+~
+«x» Point to compute for. Returns to probability of the value being less than or equal to «x».~
+«alpha» is the shape parameter. «alpha»=1 is an exponential distribution. «alpha»>1 is a unimodal distribution, approaching a normal distribution as «alpha» approaches infinity.~
+«beta» is an optional scale factor (default=1.0).
+Definition: (x>=0) * GammaI( Max([x,0]), alpha, beta )
+NodeLocation: 608,232,1
+NodeSize: 56,24
+WindState: 2,23,555,865,355
+
+Alias CumPoisson1444265767
+NodeLocation: 248,632,1
+NodeSize: 72,24
+NodeInfo: 1,1,1,1,1,1,0,0,0,0,
+NodeColor: 58978,52427,65535
+Original: CumPoissonInv
+
+Alias CumPoisson1452116650
+NodeLocation: 248,576,1
+NodeSize: 72,24
+NodeInfo: 1,1,1,1,1,1,0,0,0,0,
+NodeColor: 58978,52427,65535
+Original: CumPoisson
+
+Alias CumBinomia1452116723
+NodeLocation: 96,576,1
+NodeSize: 72,24
+NodeInfo: 1,1,1,1,1,1,0,0,0,0,
+NodeColor: 58978,52427,65535
+Original: CumBinomial
+
+Alias CumBinomia1452116728
+NodeLocation: 96,632,1
+NodeSize: 72,24
+NodeInfo: 1,1,1,1,1,1,0,0,0,0,
+NodeColor: 58978,52427,65535
+Original: CumBinomialInv
+
+Function CumGammaInv(p : Number atom ; ~
+alpha:NonNegative atom;~
+beta:recommended positive atom ; ~
+over : ... optional named atomic )
+Title: Cum GammaInv
+Description: The inverse cumulative gamma distribution function. Gamma is a distribution on the positive reals.~
+~
+«p» Probability. Returns the value x such that the probability of being less than or equal to x is «p».~
+«alpha» is the shape parameter. «alpha»=1 is an exponential distribution. «alpha»>1 is a unimodal distribution, approaching a normal distribution as «alpha» approaches infinity.~
+«beta» is an optional scale factor (default=1.0).
+Definition: if p<0 then 0 else if p>1 then INF else GammaIInv( p, alpha, beta )
+NodeLocation: 608,288,1
+NodeSize: 56,24
+WindState: 2,23,555,865,355
+
+Function CumBernoulli( x : Number ; p : Positive  )
+Title: Cum Bernoulli
+Description: The probability that the outcome of a Bernoulli(«p») is less than or equal to «x».
+Definition: if x<0 Then 0 else if x<1 then 1-p else 1
+NodeLocation: 768,576,1
+NodeSize: 64,24
+
+Function CumBernoulliInv( u : number ; p : positive)
+Title: Cum BernoulliInv
+Description: Returns the smallest Bernoulli(«p») outcome x (either 0 or 1) such that the probability P( n <= x) is greater than or equal to «u» when n is distributed as Bernoulli(p).
+Definition: u>1-p
+NodeLocation: 768,632,1
+NodeSize: 64,24
+
+Function CumBeta(x : Number atom ; ~
+a,b:Numeric atom;~
+lb,ub : optional atom;~
+over : ... optional named atomic )
+Title: Cum Beta
+Description: The cumulative beta distribution function. Beta is a distribution bounded on both sides (usually for quantities between 0 and 1). ~
+~
+«a», «b» are the distribution parameters that determine the shape. They must be positive.~
+«lb», «ub» are optional lower and upper bounds for the quantity.
+Definition: if IsNotSpecified(lb) Then lb := 0;~
+if IsNotSpecified(ub) Then ub := 1;~
+if lb>ub then ( Var tmp:=lb; lb:=ub; ub:=tmp; );~
+if x<lb then 0 ~
+else if x >= ub then 1~
+Else ~
+	BetaI( (x-lb)/(ub-lb), a, b )~
+
+NodeLocation: 480,232,1
+NodeSize: 56,24
+WindState: 2,23,406,865,504
+
+Function CumBetaInv(p : Number atom ; ~
+a,b:Numeric atom;~
+lb,ub : optional atom;~
+over : ... optional named atomic )
+Title: Cum BetaInv
+Description: The inverse cumulative beta distribution function. Beta is a distribution bounded on both sides (usually for quantities between 0 and 1). ~
+~
+«p» Probability. Returns the value x such that the probability of being less than or equal to x is «p».~
+«a», «b» are the distribution parameters that determine the shape. They must be positive.~
+«lb», «ub» are optional lower and upper bounds for the quantity.
+Definition: if IsNotSpecified(lb) Then lb := 0;~
+if IsNotSpecified(ub) Then ub := 1;~
+if lb>ub then ( Var tmp:=lb; lb:=ub; ub:=tmp; );~
+~
+if p<=0 then lb~
+else if p>=1 then ub~
+else BetaIInv( p, a, b ) * (ub-lb) + lb
+NodeLocation: 480,288,1
+NodeSize: 56,24
+WindState: 2,707,500,865,355
+
+Close Cumulative_densities
+
+Library Distribution_densit1
+Title: Distribution Densities
+Author: Lonnie
+Date: Wed, Aug 06, 2008 12:30 PM
+DefaultSize: 48,24
+NodeLocation: 80,48,1
+NodeSize: 56,24
+DiagState: 2,118,47,827,633,17
+
+Function LDens_Wishart(x,cv : Number[I,J] ; n : positive ; I,J : Index)
+Title: LDens_Wishart(x,cv,n,I,J)
+Description: The natural log of the density of a Wishart distribution at x.  X in this case is a 2-D matrix indexed by I and J.   (X is usually a scatter matrix). Cv must be positive-definite.~
+~
+The actual density is given by Exp( LnDens_Wishart( x,cv,n,I,J) ), but beware that this is usually a very small number and may underflow the limits of the computer's numeric precision.
+Definition: var isPosDefinite := Min(EigenDecomp(x+Transpose(x,I,J),I,J)[.item='value']>0,J);~
+if isPosDefinite then begin~
+  var p:=size(I);~
+  var tr := Sum(MatrixMultiply(Invert(cv,I,J),I,J,x,I,J)[J=I],I);~
+  var logdet := ln(Determinant(cv,I,J));~
+  var logp := logdet*(0.5*(n-p-1)) + ( -0.5 * tr ) - ln(2) * (0.5*n*p) - ln(Pi)*(p*(p-1)/4) - logdet*(0.5*n) - sum( LGamma(0.5*(n+1-I)), I ) ;~
+  exp(logp)~
+end ~
+  else -INF
+NodeLocation: 136,520,1
+NodeSize: 72,24
+WindState: 2,102,90,693,313
+{!40600|Att_WikiHelpURL: [wiki]}
+
+Function LDens_InvertedWishar(x,psi : Number[I,J] ; n : positive ; I,J : index)
+Title: LDens_InvertedWishart(x,Psi,n,I,J)
+Description: The natural log of the density of the Inverted Wishart distribution.  Psi must be positive-definite. The density is zero (ln density -INF) when x is not positive-definite.
+Definition: var isPosDefinite := Min(EigenDecomp(x+Transpose(x,I,J),I,J)[.item='value']>0,J);~
+if isPosDefinite then begin~
+  var p := size(I);~
+  var logDetPsi := ln(Determinant(Psi,I,J));~
+  var logDetX := ln(Determinant(X,I,J));~
+  var tr := sum( -0.5 * MatrixMultiply(Psi,I,J, Invert(x,I,J),I,J)[J=I],I);~
+  logDetPsi * (0.5*n) + logDetX * (-0.5*(n+p+1)) + (-0.5*tr)~
+  - ln(2)*(0.5*n*p) - ln(Pi)*(p*(p-1)/4) - sum( LGamma(0.5*(n+1-I)), I ) ;~
+end ~
+  else -INF
+NodeLocation: 136,576,1
+NodeSize: 96,24
+WindState: 2,101,410,476,224
+{!40600|Att_WikiHelpURL: [wiki]LDens_InvertedWishart}
+
+Function Dens_Normal(x,m,sd : numeric orNull)
+Title: Dens_Normal(x,m,sd)
+Description: The density of a uniform distribution.~
+This function has been superceded by the built-in function DensNormal(x,m,sd).
+Definition: 1/(abs(sd)*sqrt(2*Pi) ) * exp( - 0.5 * ( (x-m)/sd)^2 )
+NodeLocation: 88,112,1
+NodeSize: 64,24
+WindState: 2,4,231,840,385
+{!40600|Att_WikiHelpURL: [wiki]}
+
+Function Dens_Uniform(x,min,max:Numeric orNull ; integer : optional boolean = false)
+Title: Dens_Uniform~
+(x,min,max)
+Description: The probability density of x in a uniform distribution.  If the parameter integer is supplied and specified as false, then the probability of a discrete uniform distribution is returned.
+Definition: (min <= x and x<= max) * (~
+   if integer then   1/(floor(max)-ceil(min)+1)~
+   else 1/(max-min)~
+)
+NodeLocation: 224,112,1
+NodeSize: 64,24
+WindState: 2,98,83,597,363
+{!40600|Att_WikiHelpURL: [wiki]}
+
+Function Dens_Beta(x,a,b : scalar orNull ; lower : optional atom=0, upper : optional atom= 1)
+Title: Dens_Beta~
+(x,a,b)
+Description: The density of a beta distribution at x.
+Definition: var span:=upper-lower;~
+x := (x-lower) / span;~
+~
+If 0<=x<=1 then (~
+  var lax := if a>1 then (a-1)*ln(x) else 0;~
+  var  ax := if a<=1  then  x^(a-1) else 1;~
+  var lbx := if b>1 then (b-1)*ln(1-x) else 0;~
+  var  bx := if b<=1  then (1-x)^(b-1) else 1;~
+  var lbeta := LGamma(a) + LGamma(b) - LGamma(a+b);~
+  exp( lax + lbx - lbeta ) * ax * bx / span;~
+) else if x=null then null~
+else 0
+NodeLocation: 216,48,1
+NodeSize: 56,24
+WindState: 2,405,156,765,439
+{!40600|Att_WikiHelpURL: [wiki]}
+
+Function Prob_Bernoulli(x ; p : NonNegative orNull)
+Title: Prob_Bernoulli~
+(x,p)
+Description: The probability of a Bernoulli distribution with parameter p at x.  Since a Bernoulli sample consists of 0s and 1s only, the probability is zero everywhere except at x=0 and x=1.
+Definition: if x=null or p=null then null~
+else if x=0 then (1-p)~
+else if x=1 then p~
+else 0
+NodeLocation: 88,48,1
+NodeSize: 64,24
+WindState: 2,574,62,514,279
+{!40600|Att_WikiHelpURL: [wiki]}
+
+Function Prob_Binomial(x : Number orNull ; n,p : NonNegative OrNull)
+Title: Prob_Binomial(x,n,p)
+Description: The probability that x positive events occur in a Binomial sample of size n drawn, where the independent probability of drawing a positive sample in each draw is p.
+Definition: if x<0 or x>n then 0 ~
+else if n>1000 then~
+	{ Work in log-space to avoid numeric overflow }~
+	if p=0 Then~
+		x=0~
+	Else if p=1 Then ~
+		x=n~
+	Else~
+		Exp( lgamma(n+1) - lgamma(x+1) - lgamma(n-x+1) + x*ln(p) + (n-x)*ln(1-p) )~
+	 ~
+else Combinations(x,n) * p^x * (1-p)^(n-x)
+NodeLocation: 344,48,1
+NodeSize: 64,24
+WindState: 2,267,221,805,439
+{!40600|Att_WikiHelpURL: [wiki]}
+
+Function Prob_ChanceDist(x ; p:NonNegative orNull[I] ; A : Array[I] ; I : Index = Common)
+Title: Prob_ChanceDist~
+(x,P,A,I)
+Description: Returns the probability that a sample from ChanceDist(p,A,I) is x.
+Definition: var j := subIndex(A,x,I);~
+if IsUndef(j) then 0~
+else p[I=j] / sum(p,I)
+NodeLocation: 376,112,1
+NodeSize: 80,24
+{!40600|Att_WikiHelpURL: [wiki]}
+
+Function Dens_ChiSquared(x ; dof : positive orNull)
+Title: Dens_ChiSquared~
+(x,dof)
+Description: Returns the probability at x of a chi-squared distribution with dof degrees of freedom.
+Definition: 0.5^(dof/2) / Gammafn( dof/2 ) * x^(dof/2-1) * exp(-0.5 * x)
+NodeLocation: 104,176,1
+NodeSize: 80,24
+{!40600|Att_WikiHelpURL: [wiki]}
+
+Function Dens_Exponential(x,rate : numeric orNull)
+Title: Dens_Exponential~
+(x,rate)
+Description: The density of an exponential distribution with the given rate parameter at x.
+Definition: rate * (x>=0) * exp(-rate * x)
+NodeLocation: 272,176,1
+NodeSize: 80,24
+WindState: 2,386,125,573,308
+{!40600|Att_WikiHelpURL: [wiki]}
+
+Function Dens_Gamma(x : number orNull; alpha : positive orNull; beta : optional = 1 )
+Title: Dens_Gamma~
+(x,a,b)
+Description: The probability density of a gamma(alpha,beta) distribution at x.
+Definition: beta^(-alpha) * x^(alpha-1) * (x>=0) * exp(-x/beta) / gammafn(alpha)
+NodeLocation: 104,240,1
+NodeSize: 64,24
+WindState: 2,473,89,634,308
+{!40600|Att_WikiHelpURL: [wiki]}
+
+Function Dens_Gaussian(x,m : Number OrNull[I] ; cv : Number[I,J] ; I,J : Index)
+Title: Dens_Gaussian~
+(x,m,cv,I,J)
+Description: The probability density of a point x in a mult-variate Gaussian distribution.  m is the mean vector, cv the covariance matrix defining the Gaussian.
+Definition: var N := size(I);~
+if max(x=null or m=null,I) then null else~
+1/ sqrt( (2*Pi)^N * Determinant(cv,I,J) ) * ~
+exp( -1/2 * sum( sum( (x-m)[I=J]*Invert(cv,I,J), J) * (x-m), I ) )
+NodeLocation: 256,240,1
+NodeSize: 72,24
+WindState: 2,319,347,599,406
+{!40600|Att_WikiHelpURL: [wiki]}
+
+Function Dens_LogNormal(x ; median,gsdev,mean,stddev : optional atomic)
+Title: Dens_LogNormal~
+(x,median,gsdev)
+Description: The density of the Log Normal distribution.~
+This function has been superceded by the built-in function DensLogNormal(...)
+Definition: if IsNotSpecified(median)+IsNotSpecified(gsdev)+~
+    IsNotSpecified(mean)+IsNotSpecified(stddev)<>2 ~
+then Error("You must specify exactly two of the distribution parameters to Dens_LogNormal");~
+~
+if AnalyticaVersion>=50103 Then~
+	DensLogNormal(x,median,gsdev,mean,stddev)~
+Else begin~
+~
+	var w := 0;~
+	if not IsNotSpecified(mean) and not IsNotSpecified(stddev) then (~
+	   w := (stddev/mean)^2+1~
+	);~
+	~
+	if IsNotSpecified(median) then (~
+	  median := if IsNotSpecified(gsdev) then mean/sqrt(w)~
+	                  else if IsNotSpecified(mean) then (~
+	                            var tmp := exp(ln(gsdev)^2);~
+	                            stddev/sqrt(tmp*(tmp-1))~
+	                   ) else mean * exp(-ln(gsdev)^2/2)~
+	);~
+	~
+	if IsNotSpecified(gsdev) then  (~
+	  gsdev := if IsNotSpecified(median) then exp(sqrt(ln(w)))~
+	                 else if IsNotSpecified(mean) then exp(sqrt(ln(1+sqrt(1+4*(stddev/median)^2))/2))~
+	                 else exp(sqrt(2*ln(mean/median)))~
+	);~
+	~
+	Dens_Normal(ln(x),ln(median),ln(gsdev))/x~
+end
+NodeLocation: 256,376,1
+NodeSize: 80,24
+WindState: 2,95,79,682,723
+{!40600|Att_WikiHelpURL: [wiki]}
+
+Function Dens_Weibull( x : scalar ; shape : positive ; scale : optional positive )
+Title: Dens Weibull(x,shape,scale)
+Description: The probability density of the Weibull distribution at a point x.
+Definition: if x<0 then 0~
+else (~
+  shape / scale * (x/scale)^(shape-1) * exp( -(x/scale)^shape )~
+)
+NodeLocation: 304,520,1
+NodeSize: 72,24
+{!40600|Att_WikiHelpURL: [wiki]}
+
+Function Dens_StudentT(x,dof)
+Title: Dens_StudentT~
+(x,dof)
+Description: The probability density at x of the Student's T distribution with dof degrees of freedom.
+Definition: var c := (dof+1)/2;~
+GammaFn( c )~
+/ ( Sqrt(dof*Pi) * GammaFn(dof/2) )~
+* ( 1+x^2/dof) ^ -c
+NodeLocation: 96,440,1
+NodeSize: 72,24
+WindState: 2,589,819,475,294
+{!40600|Att_WikiHelpURL: [wiki]}
+
+Function Dens_Triangular(x,min,mode,max)
+Title: Dens_Triangular~
+(x,min,mode,max)
+Description: The probability density at x of a Triangular distribution.
+Definition: var h := 2/(max-min);~
+~
+if x<min or x>max then 0~
+else if x<mode then (x-min) * h / (mode-min)~
+else (max-x) * h / (max-mode)
+NodeLocation: 264,440,1
+NodeSize: 80,24
+WindState: 2,599,453,476,224
+{!40600|Att_WikiHelpURL: [wiki]}
+
+Function Dens_Logistic(x,mean ; scale : optional=1)
+Title: Dens_Logistic~
+(x,mean,scale)
+Description: The probability density at x of a logistic distribution
+Definition: var ex:= exp(-(x-mean)/scale );~
+ex / ( scale * (1+ex)^2 )
+NodeLocation: 104,376,1
+NodeSize: 64,24
+WindState: 2,560,470,476,224
+{!40600|Att_WikiHelpURL: [wiki]}
+
+Function Dens_CumDist(x : Reduced ; P:NonNegative[I,Run] ; R : ascending Numeric[I,Run] ;~
+I : Index = Common ; Smooth : optional boolean[] = true )
+Title: Dens CumDist~
+(x,P,R,I)
+Description: The probability density at point x in a custom distribution defined using the CumDist function.~
+~
+Currently this uses a very inefficient and noisy method for the smooth=true case (including when smooth isn't specified).
+Definition: var eps := (Max(R,I) - Min(R,I)) * 1e-6;~
+if smooth then begin~
+  { This method doesn't seem to work -- seems like the way to do it though }~
+  if AnalyticaVersion>=40102 then ~
+      ( MonoCubicInterp( R, P, x+Eps/2, I ) - MonoCubicInterp( R,P,x-Eps/2, I)) / Eps~
+  else (~
+      { Here is an alternative approximate method for now.  Unfortunately, it isn't very Analytic }~
+      { Necessary because MonoCubicInterp doesn't work prior to release 4.1.2 }~
+      Index J := 1..max([500,10*size(I)]);~
+     var df := Pdf(Random(CumDist(P,R,I,over:J)),J,samplesPerStep:20,binMethod:1);  ~
+     LinearInterp( df[DensityIndex='X'], df[DensityIndex='Y'], x, df.Step )~
+  )~
+end Else~
+   ( LinearInterp( R, P, x+Eps/2, I ) - LinearInterp( R,P,x-Eps/2, I)) / Eps~
+
+NodeLocation: 544,112,1
+NodeSize: 80,24
+WindState: 2,198,164,666,650
+{!40600|Att_WikiHelpURL: [wiki]}
+
+Function Prob_Poisson(x,mean)
+Title: Prob_Poisson~
+(x,mean)
+Description: The probability at the integer value x of a Poisson distribution.
+Definition: if abs(Round(x)-x) > 1e-6 then 0~
+else if mean=0 then x=0~
+else (~
+  exp( -mean + x*ln(mean) - LGamma(x+1) )~
+)
+NodeLocation: 432,376,1
+NodeSize: 64,24
+WindState: 2,42,710,476,224
+{!40600|Att_WikiHelpURL: [wiki]}
+
+Function Dens_ProbDist(x : Reduced ; ~
+P : NonNegative[I,Run] ; R : Numeric[I,Run] ; I : Index = Common )
+Title: Dens ProbDist~
+(x,P,R,I)
+Description: The probability density at x in a distribution defined by ProbDist(P,R,I)
+Definition: if x=null then null ~
+else if x<Min(R,I) or x>Max(R,I) then 0~
+else ( ~
+   var a := LinearInterp(R,P,x,I);~
+   index J := CopyIndex(R); ~
+   a / Area(P[@I=@J],J)~
+)
+NodeLocation: 592,376,1
+NodeSize: 80,24
+WindState: 2,525,87,513,359
+{!40600|Att_WikiHelpURL: [wiki]}
+
+Function Prob_Geometric(k,p)
+Title: Prob_Geometric~
+(k,p)
+Description: The probability at point k in a Geometric(p) discrete distribution.
+Definition: if k<0 or abs(round(k)-k)>1e-6 then 0~
+else (1-p)^(k-1) * p
+Check: p>=0 and p<=1
+NodeLocation: 408,240,1
+NodeSize: 72,24
+WindState: 2,798,3,476,224
+{!40600|Att_WikiHelpURL: [wiki]}
+
+Function Prob_HyperGeometric(k,trials,posEvents,size : atomic)
+Title: Prob_Hypergeometric~
+(k,trials,posEvents,size)
+Description: The probability at point k in a HyperGeometric(trials,posEvents,size) discrete distribution.
+Definition: if k<0 or k>posEvents or trials-k > size-posEvents or abs(round(k)-k)>1e-6 ~
+then 0~
+else ~
+   Combinations(k,posEvents) ~
+   * Combinations(trials-k,size-posEvents)~
+   / Combinations( trials,size)
+NodeLocation: 120,304,1
+NodeSize: 96,24
+WindState: 2,761,109,571,260
+{!40600|Att_WikiHelpURL: [wiki]}
+
+Function Dens_FDist(x,d1,d2)
+Title: Dens_FDist~
+(x,d1,d2)
+Description: The probability density at x of an F-distribution with d1 and d2 degrees of freedom.~
+~
+Note that the F-distribution is not a built-in distribution in Analytica.
+Definition: exp( 0.5 * ~
+   (d1 * ln(d1*x) + d2*ln(d2) - (d1+d2)*ln(d1*x+d2) ) )~
+/~
+( x * BetaFn( d1/2, d2/2 ) )
+NodeLocation: 416,176,1
+NodeSize: 56,24
+WindState: 2,443,69,494,301
+{!40600|Att_WikiHelpURL: [wiki]}
+
+Function Prob_NegativeBinomia(k : scalar ; r,p : nonNegative atom)
+Title: Prob NegativeBinomial
+Description: The probability of seeing k successes by the time r failures occur when each independent Bernoulli trial has a probability p of success.
+Definition: if k<0 then 0~
+else if k+r<=50 then~
+   Combinations(k,k+r-1) * p^k * (1-p)^r ~
+else ~
+   BetaI(p,k,r) - BetaI(p,k+1,r)
+NodeLocation: 568,240,1
+NodeSize: 80,24
+WindState: 2,102,83,475,253
+{!40600|Att_WikiHelpURL: [wiki]Prob_NegativeBinomial}
+
+Alias New1411399887
+Title: Dens Weibull(x,shape,scale)
+Definition: 1
+NodeLocation: 480,520,1
+NodeSize: 72,24
+NodeColor: 58978,52427,65535
+Original: ProbWilcoxon
+{!40600|Att_WikiHelpURL: [wiki]}
+
+Close Distribution_densit1
+
+Close Distribution_densiti
+
+Close Libraries
+
+Close SportsIQ_NBA
+

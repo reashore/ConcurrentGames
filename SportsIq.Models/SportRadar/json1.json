@@ -1,0 +1,68 @@
+{
+  "payload": {
+    "game": {
+      "id": "5c179f53-e43f-4079-99ee-06c25418e11e",
+      "status": "created",
+      "reference": "57867",
+      "number": 33,
+      "scheduled": "2019-08-20T00:00:00+00:00",
+      "attendance": 0,
+      "utc_offset": -7,
+      "entry_mode": "INGEST",
+      "weather": "Temp:  F, Wind:   mph",
+      "quarter": 1,
+      "clock": "15:00",
+      "sr_id": "sr:match:17930663",
+      "summary": {
+        "home": {
+          "name": "Broncos",
+          "market": "Denver",
+          "alias": "DEN",
+          "reference": "5086",
+          "used_timeouts": 0,
+          "remaining_timeouts": 3,
+          "id": "ce92bd47-93d5-4fe9-ada4-0fc681e6caa0",
+          "points": 0,
+          "sr_id": "sr:competitor:4418"
+        },
+        "away": {
+          "name": "49ers",
+          "market": "San Francisco",
+          "alias": "SF",
+          "reference": "5104",
+          "used_timeouts": 0,
+          "remaining_timeouts": 3,
+          "id": "f0e724b0-4cbf-495a-be47-013907608da9",
+          "points": 0,
+          "sr_id": "sr:competitor:4389"
+        }
+      }
+    },
+    "event": {
+      "type": "event",
+      "id": "8d1e78e5-c769-42bf-a4a8-62beea154232",
+      "sequence": 1.0,
+      "reference": "1",
+      "clock": "00:00",
+      "event_type": "setup",
+      "description": "GAME",
+      "alt_description": "GAME",
+      "period": {
+        "id": "60bfbdc8-0ddd-4f3a-a857-4be918210348",
+        "number": 1,
+        "sequence": 1
+      }
+    }
+  },
+  "locale": "en",
+  "metadata": {
+    "league": "nfl",
+    "match": "sd:match:5c179f53-e43f-4079-99ee-06c25418e11e,sr:match:17930663",
+    "status": "created",
+    "event_type": "setup",
+    "event_category": "",
+    "locale": "en",
+    "operation": "update",
+    "version": "v5"
+  }
+}
